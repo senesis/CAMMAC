@@ -1,0 +1,6 @@
+variability
+-----------
+
+.. automodule:: variability
+   :members:
+

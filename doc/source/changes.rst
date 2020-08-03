@@ -1,0 +1,6 @@
+changes
+----------
+
+.. automodule:: changes
+   :members:
+
