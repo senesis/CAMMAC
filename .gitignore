@@ -1,0 +1,8 @@
+.pyc
+*.pyc
+*~
+*#
+.ipynb_checkpoints
+changes/
+climaf.log
+last.out

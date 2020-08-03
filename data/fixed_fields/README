@@ -1,0 +1,5 @@
+In CMIP6, some models didn't provide the sftlf fields for all experiments, or even didn't provide it at all
+
+This directory is a repository for at least one sftlf field per model, for use by CliMAF when needed
+
+Some sftlf fields were created using a land field by setting 0 on cells with missing value, and 1 elsewhere

@@ -1,0 +1,8 @@
+File num_bas_ctrip.nc describe world hydrological basins used in CTRIP, by numbers on grid cells with resolution 0.5°
+File rivnum05_new2.txt is the key providing basins name for basin numbers
+
+See
+  Decharme, B., Delire, C., Minvielle, M., Colin, J., Vergnes, J. P., Alias, A., et al. (2019).
+  Recent Changes in the ISBA-CTRIP Land Surface System for Use in the CNRM-CM6 Climate Model and in Global Off-Line Hydrological Applications.
+  J. Adv. Model. Earth Syst. 11, 1207–1252.
+  doi:10.1029/2018MS001545.

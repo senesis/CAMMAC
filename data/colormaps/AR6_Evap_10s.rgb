@@ -1,0 +1,14 @@
+# number of colors in table : Sabin TP, IITM, Pune, for AR6 IPCC
+# Also : less dark first and last (and but last) colors (Stéphane Sénési, for AR6 IPCC)
+ncolors = 10
+#  r   g   b
+0 90 82
+1 112 104 
+53 151 143 
+128 205 193 
+199 234 229 
+246 232 195 
+223 194 125 
+191 129 45 
+140 81 10 
+114 63 7 

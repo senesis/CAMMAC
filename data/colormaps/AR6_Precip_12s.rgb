@@ -1,0 +1,16 @@
+#prec_div_12
+# Also : less dark first and last (and but last) colors (Stéphane Sénési, for AR6 IPCC)
+# 
+ncolors=12
+114 63 7 
+132 84 23
+181 121 41
+205 158 94
+222 194 156
+240 230 218
+219 234 232
+159 204 200
+100 174 168
+48 142 134
+24 101 91
+0 90 82

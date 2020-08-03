@@ -1,0 +1,8 @@
+# number of colors in table : Sabin TP, IITM, Pune, for AR6 IPCC
+ncolors = 5
+#  r   g   b
+242	240	247
+203	201	226
+158	154	200
+117	107	177
+84	39	143
