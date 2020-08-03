@@ -1,0 +1,11 @@
+# this dummy setting is necessary if there is no other 
+dummy : dummy
+
+#
+
+data_versions_tag : "20200719d"
+excluded_models : [ ]
+use_cached_proj_fields : False
+#do_test : True
+
+
