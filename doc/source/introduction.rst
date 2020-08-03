@@ -1,23 +1,23 @@
 Introduction
 ------------
+CAMMAC : "Climate Change Analysis using Multi-Model outputs and `CliMAF <https://climaf.readthedocs.io>`_".
 
-This document describes the a software originally developped by
-Stéphane Sénési for helping with analyses and figures based on `CMIP6
-<https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_ multi-model
-results and needed in the context of `IPCC <https://www.ipcc.ch/>`_
-Assessemnt Report #6 (`AR6
-<https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8 (that
-chapter deals with hydrological aspects of Climate Change). This
-development was funded by IPCC
+This document describes a software funded by Météo-France and originally developped by Stéphane
+Sénési, for helping with analyses and figures based
+on `CMIP6 <https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_
+multi-model results and needed in the context of Météo-FRance's
+contribution to `IPCC <https://www.ipcc.ch/>`_ Assessemnt Report #6
+(`AR6 <https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8
+(that chapter deals with hydrological aspects of Climate Change). This
+development was funded by Météo-France
 
-The software is named CAMMAC, for "Projections Assessment with `CliMAF
-<https://climaf.readthedocs.io>`_". Its design allows to re-use it for
-multi-model analyses of changes of any climate variable, and potentially any
-project results set (see `dependency_on_CMIP6`)
-; it has been developped on `IPSL's <https://www.ipsl.fr/>`_ `ESPRI
+The software design allows to re-use it for
+multi-model analyses of changes of any climate variable, and
+potentially any project results set (see `dependency_on_CMIP6`) ; it
+has been developped on `IPSL's <https://www.ipsl.fr/>`_ `ESPRI
 <https://en.aeris-data.fr/espri/>`_ platform, and it is fully portable
-and usable on any machine with CMIP6 data and
-e.g. conda-enabled environments (see :ref:`requirements`)
+and usable on any machine with CMIP6 data and e.g. conda-enabled
+environments (see :ref:`requirements`)
 
 The organization of this software is based on :
 
@@ -36,7 +36,7 @@ The organization of this software is based on :
   notebook parameters
 
 - and two notebooks for handling the selection of the set of CMIP6
-  dataset versions used by the figure notebooks
+  dataset versions used by the figure notebooks for the case of AR6 report
 
 In addition, a series of fixed fields representing the land fraction
 for all models used has been gathered in a specific directory, in

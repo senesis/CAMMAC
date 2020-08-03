@@ -6,8 +6,7 @@
 CAMMAC documentation - Projections Assessment with CliMAF
 ====================================================================
 
-CLAMMO : Climaf-based Library for Analyzing MIP Multi-model outputs
-CCAMMOC : Climate Change Annalysys using Multi-Model Outputs and CliMAF
+CAMMAC : Climate Change Analysis using Multi-Model outputs and CliMAF
 
 .. include:: introduction.rst
 
