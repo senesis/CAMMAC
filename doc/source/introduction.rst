@@ -1,19 +1,19 @@
 Introduction
 ------------
-CAMMAC : "Climate Change Analysis using Multi-Model outputs and `CliMAF <https://climaf.readthedocs.io>`_".
+CAMMAC : Climate Change Analysis using Multi-Model outputs and `CliMAF <https://climaf.readthedocs.io>`_
 
-This document describes a software funded by Météo-France and originally developped by Stéphane
-Sénési, for helping with analyses and figures based
-on `CMIP6 <https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_
-multi-model results and needed in the context of Météo-FRance's
-contribution to `IPCC <https://www.ipcc.ch/>`_ Assessemnt Report #6
-(`AR6 <https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8
-(that chapter deals with hydrological aspects of Climate Change). This
-development was funded by Météo-France
+This document describes a software funded by Météo-France and
+originally developped by Stéphane Sénési, for helping with analyses
+and figures based on `CMIP6
+<https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_ multi-model
+results and needed in the context of Météo-France's contribution to
+`IPCC <https://www.ipcc.ch/>`_ Assessment Report #6 (`AR6
+<https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8 (that
+chapter deals with hydrological aspects of Climate Change).
 
 The software design allows to re-use it for
 multi-model analyses of changes of any climate variable, and
-potentially any project results set (see `dependency_on_CMIP6`) ; it
+potentially any project results set (see :ref:`dependency_on_CMIP6`) ; it
 has been developped on `IPSL's <https://www.ipsl.fr/>`_ `ESPRI
 <https://en.aeris-data.fr/espri/>`_ platform, and it is fully portable
 and usable on any machine with CMIP6 data and e.g. conda-enabled
@@ -26,7 +26,7 @@ The organization of this software is based on :
 - notebooks, a series of parameterized IPython notebooks, which can be
   seen as "main programs" using CAMMAClib; each notebook was inspired by
   the needs of one of the multi-panel AR6/WG1/Chapter8 figures, but
-  designed to be more generic than these needs . Some of these
+  designed to be more generic than these needs. Some of these
   notebooks are used for producing more than one figure (by changing
   their run parameters)
 

@@ -16,6 +16,7 @@ Based on CliMAF >= 1.2.13
 
 from climaf.api import *
 from climaf.period import init_period
+from env.environment import cscripts
 from mips_et_al import institute_for_model, project_for_model, table_for_var_and_experiment
 
 
@@ -25,7 +26,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
                     shift=100,nyears=20,number=20,
                     variability=True,
                     compute=True,house_keeping=False,detrend=True,
-                    models_with_enough_spinup=[],deep=False):
+                    models_with_enough_spinup=[],deep=None):
     """
     Compute the variability according to AR5 Box 2.1 : 
      - select data time series in piControl for the whole of the samples (from 
@@ -66,6 +67,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
 
     This version yet tested only on CMIP6 models 
     """
+    print("in variability_AR5, hk=",house_keeping)
     init_trend()
     from climaf.operators import ctrend,csubtrend
 
@@ -126,7 +128,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
     # Build an ensemble which members are the slices
     econtrol=cens()
     slices=[ "%d-%d"%(begin+n*nyears,begin+(n+1)*nyears-1) for n in range(0,number) ]
-    print "model=",model," variant=",realization," slices=",slices
+    #print "model=",model," variant=",realization," slices=",slices
     for period in slices :
         econtrol[period]=ccdo_fast(dat,operator="seldate,"+init_period(period).iso())
 
@@ -208,7 +210,7 @@ def init_trend():
     operators 'trend' and 'subtrend'
     """
     
-    if "ctrend" not in climaf.operators.scripts:
+    if "ctrend" not in cscripts:
         cscript("ctrend", "cdo trend ${in} ${out} ${out_b}")
         cscript("csubtrend", "cdo subtrend ${in_1} ${in_2} ${in_3} ${out}")
 

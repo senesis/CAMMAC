@@ -11,10 +11,15 @@ cd $wdir
 
 
 # Create input parameters file 
-cat <<EOF >fig_SOD_8.16_figure.yaml
+cat <<EOF >fig.yaml
+figure_name : fig_SOD_BoxTS.X_f3_h
 input_dir : /data/ssenesi/prod/fig_SOD_8.16/changes
+
+version         : "_without_CAMS-CSM1-0"
+excluded_models : [ CAMS-CSM1-0 ]
+
 EOF
 
 jobname=$figname
 output=$figname
-$D/jobs/job_pm.sh $D/notebooks/change_hybrid_seasons_figure.ipynb fig_SOD_8.16_figure.yaml $jobname $output
+$D/jobs/job_pm.sh $D/notebooks/change_hybrid_seasons_figure2.ipynb fig.yaml $jobname $output

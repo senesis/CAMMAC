@@ -83,6 +83,8 @@ def choose_variant(variants,experiments,excluded_models,included_models):
            (included_models is None or model in included_models) and \
            set(variants[model]) == set(experiments) :
             
+            chosen_variant=None
+            
             # Then search for common variants (excepting piControl)
             exps=[ e for e in experiments ]
 
@@ -101,7 +103,7 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                         r1s.append((model,variant))
                 if len(r1s) > 0 :
                     if len(r1s) == 1  :
-                        pairs.append(r1s[0])
+                        chosen_variant=r1s[0]
                     else:
                         # Preferentially keep a "r1i1" variant
                         r1i1s=[]
@@ -110,7 +112,7 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                                 r1i1s.append((model,variant))
                         if len(r1i1s) > 0 :
                             if len(r1i1s) == 1  :
-                                pairs.append(r1i1s[0])
+                                chosen_variant=r1i1s[0]
                             else:
                                 # Preferentially keep a "r1i1p1" variant
                                 r1i1p1s=[]
@@ -119,16 +121,14 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                                         r1i1p1s.append((model,variant))
                                 if len(r1i1p1s) > 0 :
                                     if len(r1i1p1s) == 1  :
-                                        pairs.append(r1i1p1s[0])
+                                        chosen_variant=r1i1p1s[0]
                                     else: 
                                         raise ValueError("Should handle preference among forcing index for %s %s %s"%\
-                                                        (experiment,model,`r1i1p1s`))
-                if len(pairs) >0 :
-                    last_model,last_variant=pairs[-1]
-                    if last_model != model :
-                        # a prefered variant was not found ; keep any variant
-                        variant=variants_set.pop()
-                        pairs.append((model,variant))
+                                                        (experiments,model,`r1i1p1s`))
+                if chosen_variant is None :
+                    # a prefered variant was not found ; keep any variant
+                    chosen_variant=variants_set.pop()
+                pairs.append((model,chosen_variant))
 
     return pairs
 

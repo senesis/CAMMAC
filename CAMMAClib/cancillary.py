@@ -14,10 +14,11 @@ import json, os, os.path, numpy as np
 from scipy.stats import tvar
 from climaf.api import *
 from climaf.operators import ccdo,ccdo_fast,ccdo2
+from env.environment import cscripts
 from mips_et_al import institute_for_model, table_for_var_and_experiment
 from variability import init_trend
 
-if "gini" not in climaf.operators.scripts:
+if "gini" not in cscripts:
     cscript("gini","python %s/gini.py ${in} ${out}"%__file__,_var="gini")
 
 def init_yeardiv():

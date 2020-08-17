@@ -6,7 +6,9 @@ basic or derived variables, and for plotting corresponding figures
 Based on CliMAF >= 1.2.13
 
 """
-import os, os.path
+import os
+import os.path
+import hashlib
 
 from climaf.api import *
 
@@ -140,25 +142,26 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
 def global_change(variable,table,experiment,period,ref_experiment,ref_period,
                   models,data_versions,filter_length=21) :
     """
-    Returns a CliMAF ensemble of 1D fields representing the change for a VARIABLE along a PERIOD 
-    of EXPERIMENT vs. a REF_PERIOD in another  REF_EXPERIMENT, for a list of MODELS
+    Returns a CliMAF ensemble of 1D fields representing the global change for a 
+    VARIABLE along a PERIOD of EXPERIMENT vs. a REF_PERIOD in another  REF_EXPERIMENT, 
+    for a list of MODELS
 
     The values are first yearly averaged and filtered on FILTER_LENGTH years
 
     DATA_VERSIONS, must be a  dictionnary with this structure (like provided by the notebook 
     in sibling directory data_versions) :
 
-    >>> data_versions[experiment][variable][table][model]=(grid,variant,version,data_period)
+    >>> data_versions[experiment][variable][table][model][variant]=(grid,version,data_period)
 
      e.g.: 
 
-     >>> data_versions["ssp245"]["pr"]["Amon"]["MPI-ESM1-2-HR"]=("gn","r1i1p1f1","v20190710","2015-2100")
+     >>> data_versions["ssp245"]["pr"]["Amon"]["MPI-ESM1-2-HR"]["r1i1p1f1"]=("gn","v20190710","2015-2100")
 
     (data-period is used only for piControl)
 
     Tuned for CMIP6 only (yet). Use variable 'tas' in table 'Amon'
 
-    Assumes that realization indices an grids are consistent among experiments for provided list of models 
+    Assumes that realization indices and grids are consistent among experiments for provided list of models 
     """
     #
     GSAT=cens()
@@ -193,7 +196,7 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                   ref_experiment="historical",
                   variab_sampling_args= {"house_keeping":True,"compute":True,"detrend":True,"shift":100,"nyears":20,"number":20},
                   common_grid=None,table=None,
-                  models_with_enough_spinup=None,deep=False) :
+                  models_with_enough_spinup=None,deep=None) :
     
     """
     Computes a series of change fields for one
@@ -287,13 +290,26 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
         #
         for season in seasons :
             if not print_statistics: print experiment,season,
-            models=models_to_plot[experiment]
+            control_models,models=models_to_plot[experiment]
+            #
+            if variab_sampling_args != {} and variab_sampling_args is not None :
+                if print_statistics : print "Variabilities :",
+                for model,realization in control_models :
+                    variability=variability_field(project,model,realization,
+                            variable, season,derivation_label, standardized,
+                            variab_sampling_args,common_grid,table,
+                            data_versions,models_with_enough_spinup,deep)
+                    feed_dic(dic,variability,experiment,season,"variability",derivation_label,model)
+                    if print_statistics :
+                        print "%s % 7.2g / "%(model,cvalue(ccdo_fast(variability,operator="fldmean"))),
+                if print_statistics : print 
+            #
             for model,realization in models :
                 change_fields_internal(dic,model,realization,variable,ref_period,
                             projection_period,ref_experiment,experiment,season,
                             derivation_label, relative,standardized,print_statistics,
-                            variab_sampling_args,common_grid,table,
-                            data_versions,models_with_enough_spinup,deep)
+                            common_grid,table,
+                            data_versions,deep)
                 if print_statistics : csync()
             #
             # Compute ensemble statistics
@@ -352,8 +368,8 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 def change_fields_internal(dic,model,realization,variable,ref_period,
                            projection_period,ref_experiment,experiment,season,
                            derivation_label,relative,standardized,print_statistics,
-                           variab_sampling_args,common_grid,table,
-                           data_versions,models_with_enough_spinup,deep):
+                           common_grid,table,
+                           data_versions,deep):
     """
     See function change_fields for documentation 
     """
@@ -365,29 +381,11 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
         print "%s %s %-20s"%(experiment,season, model),
     else :
         print model,
+    #
     project=project_for_experiment(experiment)
     grid,version,_=data_versions[ref_experiment][variable][table][model][realization]
     roption=choose_regrid_option(variable,table,model,grid)
     derivation=derivations[derivation_label]
-    #
-    if  variab_sampling_args != {} and variab_sampling_args is not None :
-        args=variab_sampling_args.copy()
-        args.update(derivation)
-        variability=variability_AR5(model,realization,variable,table,data_versions,
-                                season=season,project=project, 
-                                models_with_enough_spinup=models_with_enough_spinup,
-                                **args)
-        #
-        if standardized :
-            if "post_operator" in derivation or "operator" in derivation :
-                raise ValueError("Cannot yet compute inter-annual variability "+\
-                        "for a variable (%s) and a derivation (%s) which needs pre or post-processing"%\
-                        (variable,derivation_label))
-            inter_ann_var=control_inter_annual_variability(model,realization,variable,table,season,data_versions,**args)
-            variability=ccdo2(variability,inter_ann_var,operator="div")
-        #
-        variability=regridn(variability,cdogrid=common_grid,**roption)
-        feed("variability",variability)
     #
     base_dict=dict(project=project, experiment=ref_experiment,
                         model=model, institute=institute_for_model(model),
@@ -408,7 +406,10 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
             #
             threshold=0.
             threshold=zero_dot_zero1_mm_day
-            thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-%f,%f"%(threshold,threshold))
+            if variable=="evspsbl" :
+                thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-%f,%f"%(threshold,threshold))
+            else:
+                thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
         else :
             thresholded_reference=reference
     #
@@ -438,10 +439,7 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
         feed("schange",schange_remapped)
     #
     if print_statistics :
-        if variab_sampling_args != {} and variab_sampling_args is not None :
-            variab_value=cvalue(ccdo_fast(variability,operator="fldmean"))
-        else: 
-            variab_value=0.
+        variab_value=0.
         print "      %7.2g     %7.2g      %7.2g      %7.2g"%(
             variab_value,\
             cvalue(ccdo_fast(reference,operator="fldmean")),\
@@ -460,22 +458,53 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
         print       
     return
 
+def variability_field(project,model,realization,variable,season,
+                           derivation_label,standardized,
+                           variab_sampling_args,common_grid,table,
+                           data_versions,models_with_enough_spinup,deep):
+    """
+    Computes variability for the requested model, and regrid it to common grid
+    """
+    #
+    if realization not in data_versions["piControl"][variable][table][model] :
+        realization=data_versions["piControl"][variable][table][model].keys()[0]
+    grid,_,_=data_versions["piControl"][variable][table][model][realization]
+    roption=choose_regrid_option(variable,table,model,grid)
+    derivation=derivations[derivation_label]
+    #
+    args=variab_sampling_args.copy()
+    args.update(derivation)
+    variability=variability_AR5(model,realization,variable,table,data_versions,
+                                season=season,project=project, 
+                                models_with_enough_spinup=models_with_enough_spinup,
+                                **args)
+    #
+    if standardized :
+        if "post_operator" in derivation or "operator" in derivation :
+            raise ValueError("Cannot yet compute inter-annual variability "+\
+                             "for a variable (%s) and a derivation (%s) which needs pre or post-processing"%\
+                             (variable,derivation_label))
+        inter_ann_var=control_inter_annual_variability(model,realization,variable,table,season,data_versions,**args)
+        variability=ccdo2(variability,inter_ann_var,operator="div")
+        #
+    variability=regridn(variability,cdogrid=common_grid,**roption)
+    return variability 
 
- 
 def AR6_change_figure_with_caching(variable, experiment, season, 
                         data_versions_tag, data_versions_dir,
                         models=None, excluded_models=[],
+                        variability_models=None, variability_excluded_models=[],
                         ref_period="1995-2014", proj_period=None,
                         ref_experiment="historical",
                         table=None, field_type="mean_rchange",
                         derivation_label="plain", 
                         title=None, custom_plot={}, labelbar="True",
                         outdir=None, outfile=None,
-                        print_statistics=True , deep=False, read=True, write=True, 
+                        print_statistics=True , deep=None, read=True, write=True, 
                         common_grid="r360x180", mask=None,
                         variab_sampling_args={"house_keeping":True, "compute":True,"detrend":True, "shift":100,"nyears":20,"number":20},
                         cache_dir="./aggregates",models_with_enough_spinup=["BCC-ESM1","CESM2-WACCM","CanESM5"],
-                        drop=False
+                        drop=False, same_models_for_variability_and_changes=False
                         ) :
     """
     This is a wrapper around two functions :
@@ -498,6 +527,13 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     DATA_VERSIONS_DIR) are used.
 
     EXCLUDED_MODELS is a list of models that must anyway be disregarded
+
+    Toggle SAME_MODELS_FOR_VARIABILITY_AND_CHANGES allows to choose whether the list of models used for 
+    computing changes should be restricted to the models for which variability can be computed (i.e. 
+    present in dict DATA_VERSIONS for the control run, which means that there is  
+    enough duration of that run). If set to False, one can control the list of models used for
+    computing variability with arguments VARIABILITY_MODElS and VARIABILITY_EXCLUDED_MODElS in a way 
+    similar to the models used for computing changes
 
     Argument DEEP, if set to True, will force CliMAF to restart all computations from scratch rather than 
     using its (own) cached values. This is done whatever the value of READ.
@@ -525,18 +561,33 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         standardized=True
     #
     data_versions=read_versions_dictionnary(data_versions_tag, data_versions_dir)
-    possible_models=models_for_experiments(data_versions,variable,table,
-                                           ["piControl",ref_experiment,experiment],excluded_models,models)
     #
-    models_dict={experiment:possible_models}
+    if same_models_for_variability_and_changes :
+        changes_models=models_for_experiments(data_versions,variable,table,
+                                           ["piControl",ref_experiment,experiment],excluded_models,models)
+        changes_models.sort()
+        variab_models=changes_models
+    else:
+        changes_models=models_for_experiments(data_versions,variable,table,
+                                           [ref_experiment,experiment],excluded_models,models)
+        changes_models.sort()
+        variab_models=models_for_experiments(data_versions,variable,table,["piControl"],
+                                             variability_excluded_models,variability_models)
+        variab_models.sort()
+    #
+    models_dict={experiment:(variab_models,changes_models)}
+    
+    models_reals_string=reduce(lambda x,y : "%s_%s"%(x,y), [ "%s%s"%(m,r) for m,r in changes_models])
+    tag=data_versions_tag + "_" + hashlib.sha1(models_reals_string).hexdigest()[0:8]
+    #
     # print 'models',models
-    # print 'possible_models',possible_models
+    # print 'changes_models',changes_models
     # print 'models_dict',models_dict
     #
     aggregates={}
     read_failed=False
-    if read and not deep :
-        aggregates=read_aggregates(proj_period,data_versions_tag,cache_dir)
+    if read and deep is not True :
+        aggregates=read_aggregates(ref_period,proj_period,tag,cache_dir)
         try :
             a=aggregates[variable][experiment][season][field_type][derivation_label]
         except :
@@ -559,7 +610,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         #duration = end_time - start_time
         #print "%6.2g seconds"%duration.total_seconds()
         if write and (not read or read_failed or deep) :
-            dump_aggregates(aggregates,variable,derivation_label,proj_period,cache_dir,data_versions_tag,deep)
+            dump_aggregates(aggregates,variable,derivation_label,ref_period,proj_period,cache_dir,tag,deep)
     #
     if title is None :
         title=field_type+" "+variable+" "+derivation_label+" "+season+" "+experiment
@@ -572,7 +623,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     #
     relative = ( "_rchange" in field_type )
     plot1=AR6_change_figure(variable,derivation_label,field,stippling,hatching,
-                            relative,labelbar,title,custom_plot,len(models_dict[experiment]),mask)
+                            relative,labelbar,title,custom_plot,len(changes_models),mask)
     if drop :
         cdrop(plot1)
     #
@@ -580,15 +631,15 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         if outdir is None :
             raise Error("Must provide either outdir or outfile")
         if not os.path.exists(outdir) : os.makedirs(outdir)
-        filename="%s/fig_%s_%s_%s_%s_%s_%s_%s.png"%(outdir,variable,derivation_label,experiment,
-                                                season,field_type,proj_period,data_versions_tag)
+        filename="%s/fig_%s_%s_%s_%s_%s_%s_%s_%s.png"%(outdir,variable,derivation_label,experiment,
+                                                    season,field_type,ref_period,proj_period,tag)
     else:
         filename=outfile
     cfile(plot1,filename)
     print "Figure available as ",filename
-    return filename,plot1,dic,possible_models
+    return filename,plot1,dic,variab_models,changes_models
 
-def dump_aggregates(aggregates,variable,derive,proj_period,cache_dir,data_versions_tag,deep=False) :
+def dump_aggregates(aggregates,variable,derive,ref_period,proj_period,cache_dir,tag,deep=None) :
     """
     This is an ancillary function for AR6_change_figure_with_caching. See its doc
     """
@@ -598,25 +649,24 @@ def dump_aggregates(aggregates,variable,derive,proj_period,cache_dir,data_versio
     for exp in aggregates[variable] :
         for season in aggregates[variable][exp] :
             for field in aggregates[variable][exp][season] :
-                ceval(aggregates[variable][exp][season][field][derive],deep=deep)
                 cfile(aggregates[variable][exp][season][field][derive],
-                      cache_dir+"/%s=%s=%s=%s=%s=%s=%s.nc"%(season,variable,exp,field,derive,proj_period,data_versions_tag),
-                      ln=False)
+                      cache_dir+"/%s=%s=%s=%s=%s=%s=%s=%s.nc"%(season,variable,exp,field,derive,ref_period,proj_period,tag),
+                      deep=None,ln=False)
                 
-def read_aggregates(proj_period,data_versions_tag,cache_dir) :
+def read_aggregates(ref_period,proj_period,tag,cache_dir) :
     """
     This is an ancillary function for AR6_change_figure_with_caching. See its doc
     """
     d=dict()
     import glob
-    files=glob.glob(cache_dir+"/*=*=*=*=*=*=%s.nc"%data_versions_tag)
+    files=glob.glob(cache_dir+"/*=*=*=*=*=*=*=%s.nc"%tag)
     #print files
     for f in files :
         bn=f.split("/")[-1]
         bn=bn.split(".")[0]
         bn=bn.split("=")
-        season,variable,exp,field,derive,pperiod,_=bn
-        if pperiod==proj_period :
+        season,variable,exp,field,derive,rperiod,pperiod,_=bn
+        if pperiod==proj_period and rperiod==ref_period :
             dataset=fds(f,period="1850-2100")
             # Need to erase cached value
             cdrop(dataset)
