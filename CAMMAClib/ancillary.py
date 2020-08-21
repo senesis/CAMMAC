@@ -1,3 +1,4 @@
+from __future__  import division
 """
 
 CAMMAC ancillary functions for :
@@ -18,7 +19,7 @@ prettier_label={
     "DJF":"DJF","JJA":"JJA","ann":"All seasons","ANN":"All seasons",
     #
     "pr":"precipitation","P-E":"P-E","evspsbl":"evapotranspiration",
-    "mrso":"Soil moisture","mrsos":"soil surface moisture", "mrro":"runoff", "sos":"sea surface salinity",
+    "mrso":"soil moisture","mrsos":"soil surface moisture", "mrro":"runoff", "sos":"sea surface salinity",
     #
     "drain" : "daily precipitation intensity",
     "dry":"dry days per year",
@@ -91,7 +92,7 @@ def concatenate_labelbars(lbfile1,lbfile2,lbfile) :
               " %s -geometry x100+550+0 -composite -trim %s"%(lbfile2,lbfile))
 
 
-def create_labelbar(figure_file,out_file,missing=True,signif=True,captions_dir=None):
+def create_labelbar0(figure_file,out_file,missing=True,signif=True,captions_dir=None):
 
     # Extract labelbar from figure_file 
     extract_labelbar(figure_file,"tmp_labelbar.png")
@@ -123,7 +124,7 @@ def create_labelbar(figure_file,out_file,missing=True,signif=True,captions_dir=N
               "\( %s -scale x130 -geometry +900+0 \) -composite -trim %s"%(shading_caption,out_file))
     os.system("rm tmp_labelbar.png")
 
-def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,captions_dir=None):
+def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,captions_dir=None,width=2100,height=130):
 
     # Extract labelbar from figure_file 
     extract_labelbar(figure_file1,"tmp_labelbar1.png")
@@ -138,13 +139,53 @@ def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,captions_di
 
     # signif captions size is 314x175
     # label bars size is 872x130 (for page_width=2450,page_height=3444)
-    os.system("rm %s ; "%out_file +
-              "convert -size 2200x130 xc:white "+
-              " \( tmp_labelbar2.png -scale x130 -geometry +1200+0 \)  -composite " +
-              " \( %s                -scale x130 -geometry +900-0  \)  -composite " % shading_caption +
-              " \( tmp_labelbar1.png -scale x130 -geometry +0+0    \)  -composite " +
-              " -trim "+out_file)
-    
+
+    # Divide width in segments : 3+1+3
+    signif_width=width//7
+    lbwidth= 3*signif_width
+    margin=signif_width/6
+    if height is None : height=width/16
+    command="rm -f %s ; "%out_file +\
+              "convert -size %dx%d xc:white "%(width,height)+\
+              " \( tmp_labelbar2.png -scale %dx%s -geometry +%d+0 \)  -composite "%\
+              (lbwidth,height,lbwidth+signif_width) +\
+              " \( %s                -scale %dx%d -geometry +%d-0  \)  -composite "%\
+              (shading_caption,signif_width-2*margin,height,lbwidth+margin) +\
+              " \( tmp_labelbar1.png -scale %dx%d -geometry +0+0    \)  -composite "%\
+              (lbwidth,height) +\
+              " -trim "+out_file
+    os.system(command)
     os.system("rm tmp_labelbar1.png  tmp_labelbar2.png")
+
+
+def create_labelbar(figure_file,out_file,missing=True,captions_dir=None,width=1200,height=130):
+
+    # Extract labelbar from figure_file 
+    extract_labelbar(figure_file,"tmp_labelbar.png")
+    
+    # Combine with legend for shadings
+    if captions_dir is None :
+        captions_dir=os.path.dirname(os.path.abspath( __file__ ))+"/captions/"
+    if missing : caption="caption_signif_missing.png"
+    else:        caption="caption_signif_centre.png"
+    shading_caption=captions_dir+caption
+
+    # signif captions size is 314x175
+    # label bars size is 872x130 (for page_width=2450,page_height=3444)
+
+    # Divide width in segments : 3+1+3
+    signif_width=width//4
+    lbwidth= 3*signif_width
+    margin=signif_width/6
+    if height is None : height=width/16
+    command="rm -f %s ; "%out_file +\
+              "convert -size %dx%d xc:white "%(width,height)+\
+              " \( %s                -scale %dx%d -geometry +%d-0  \)  -composite "%\
+              (shading_caption,signif_width-2*margin,height,lbwidth+margin) +\
+              " \( tmp_labelbar.png -scale %dx%d -geometry +0+0    \)  -composite "%\
+              (lbwidth,height) +\
+              " -trim "+out_file
+    os.system(command)
+    os.system("rm tmp_labelbar.png")
 
 
