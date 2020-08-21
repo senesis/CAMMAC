@@ -87,7 +87,6 @@ def choose_variant(variants,experiments,excluded_models,included_models):
             
             # Then search for common variants (excepting piControl)
             exps=[ e for e in experiments ]
-
             if "piControl" in experiments and len(experiments)>1 :
                 exps.remove("piControl")
                     
@@ -100,25 +99,25 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                 r1s=[]
                 for variant in variants_set :
                     if variant[0:3]=="r1i" :
-                        r1s.append((model,variant))
+                        r1s.append(variant)
                 if len(r1s) > 0 :
                     if len(r1s) == 1  :
                         chosen_variant=r1s[0]
                     else:
                         # Preferentially keep a "r1i1" variant
                         r1i1s=[]
-                        for model,variant in r1s :
+                        for variant in r1s :
                             if "r1i1p" in variant:
-                                r1i1s.append((model,variant))
+                                r1i1s.append(variant)
                         if len(r1i1s) > 0 :
                             if len(r1i1s) == 1  :
                                 chosen_variant=r1i1s[0]
                             else:
                                 # Preferentially keep a "r1i1p1" variant
                                 r1i1p1s=[]
-                                for model,variant in r1i1s :
+                                for variant in r1i1s :
                                     if "r1i1p1f" in variant:
-                                        r1i1p1s.append((model,variant))
+                                        r1i1p1s.append(variant)
                                 if len(r1i1p1s) > 0 :
                                     if len(r1i1p1s) == 1  :
                                         chosen_variant=r1i1p1s[0]
