@@ -26,7 +26,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
                     shift=100,nyears=20,number=20,
                     variability=True,
                     compute=True,house_keeping=False,detrend=True,
-                    models_with_enough_spinup=[],deep=None):
+                    deep=None):
     """
     Compute the variability according to AR5 Box 2.1 : 
      - select data time series in piControl for the whole of the samples (from 
@@ -67,7 +67,6 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
 
     This version yet tested only on CMIP6 models 
     """
-    print("in variability_AR5, hk=",house_keeping)
     init_trend()
     from climaf.operators import ctrend,csubtrend
 
@@ -80,17 +79,16 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
     end=int(data_period.split('-')[1][0:4])
     begin=true_begin+shift
     if begin+duration-1 > end :
-        message="Duration for %s %s %s %s %s %s is too short : [%d - %d] with shift %d is shorter than %d years "%\
-                        (model,variable,table,realization,version,grid,true_begin,end,shift,duration)
-        # In CMIP6, some models have enough spinup before piControl start, but a too short piControl length 
-        if model not in models_with_enough_spinup :
-            raise ValueError(message)
+        # In CMIP6, some models have enough spinup before piControl start, but a too short piControl length
+        # We assume that this has been dealt with at the stage of data selection, and allow
+        # to release the constraint on shift at the beginning of the data period
+        alt_begin=end-duration
+        if alt_begin >= true_begin :
+            begin=alt_begin                
         else :
-            alt_begin=end-duration
-            if alt_begin >= true_begin :
-                begin=alt_begin                
-            else :
-                raise ValueError(message+" even with no shift !")
+        message="Duration for %s %s %s %s %s %s is too short : [%d - %d] even with no shift %d is shorter than %d years "%\
+                        (model,variable,table,realization,version,grid,begin,end,shift,duration)
+            raise ValueError(message)
     #
     period="%g-%g"%(begin,begin+duration-1)
     base_dict=dict(project=project, experiment="piControl",
@@ -310,7 +308,8 @@ def control_inter_annual_variability(model,realization,variable,table,season,dat
     try :
         grid,version,pperiod = data_versions["piControl"][variable][table][model][variant]
     except :
-        raise ValueError("Cannot get data_version for %s %s %s %s %s nor %s "%("piControl",variable,table,model,realization,variant))
+        raise ValueError("Cannot get data_version for %s %s %s %s %s nor %s "%\
+                         ("piControl",variable,table,model,realization,variant))
         
     begin=int(pperiod.encode('ascii').split("-")[0])
     #

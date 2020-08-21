@@ -32,7 +32,7 @@ def init_yeardiv():
     We use a feature of CDO operator mergetime, which, when provided with records of the same 
     time, just concatenate them (rather than discarding these redundant records)
     """
-    if "yeardiv" in climaf.operators.scripts:
+    if "yeardiv" in cscripts:
         return
     cscript( 'yeardiv','cdo -O div '\
              '${in} '\

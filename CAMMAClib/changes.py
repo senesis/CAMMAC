@@ -194,9 +194,10 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                   models_to_plot, data_versions, derivation_label=None,
                   relative=False, standardized=False, print_statistics=False,
                   ref_experiment="historical",
-                  variab_sampling_args= {"house_keeping":True,"compute":True,"detrend":True,"shift":100,"nyears":20,"number":20},
+                  variab_sampling_args= {"house_keeping":True,"compute":True,"detrend":True,
+                                         "shift":100,"nyears":20,"number":20},
                   common_grid=None,table=None,
-                  models_with_enough_spinup=None,deep=None) :
+                  deep=None) :
     
     """
     Computes a series of change fields for one
@@ -227,9 +228,10 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
       - "median_rchange" is the ensemble median of relative changes
 
     Toggles STANDARDIZED activate the computation of change standardized by its 
-    interannual variability. Field name suffix is "_schange"
+    interannual variability. Field name suffix is "_schange". 
       - "mean_schange" is the ensemble mean of standardized changes
       - "median_schange" is the ensemble median of standardized changes
+    The (multi-decadal) variability is then also standardized the same way.
 
     Argument MODELS_WITH_ENOUGH_SPINUPS provides a list of models
     which are supposed to have a sufficiently long spin-up period
@@ -271,7 +273,9 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
     """
     aggregates=dict()
     dic=dict()
-
+    if standardized and (variab_sampling_args == {} or variab_sampling_args is None) :
+        raise Exception("Must provide variability sampling arguments when requesting "+\
+                        "a variable standardized by inter_annual variability")
     #
     if print_statistics :
         print "Values below are field means, except for last two columns. Last third is median and %. Last three columns are %"
@@ -287,30 +291,29 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
         if table is None :
             table=table_for_var_and_experiment(variable,experiment)
         project=project_for_experiment(experiment)
+        control_models,models=models_to_plot[experiment]
+        do_variability=variab_sampling_args != {} and variab_sampling_args is not None and len(control_models) > 0
         #
         for season in seasons :
             if not print_statistics: print experiment,season,
-            control_models,models=models_to_plot[experiment]
             #
-            if variab_sampling_args != {} and variab_sampling_args is not None :
+            if do_variability :
                 if print_statistics : print "Variabilities :",
                 for model,realization in control_models :
                     variability=variability_field(project,model,realization,
                             variable, season,derivation_label, standardized,
                             variab_sampling_args,common_grid,table,
-                            data_versions,models_with_enough_spinup,deep)
+                            data_versions)
                     feed_dic(dic,variability,experiment,season,"variability",derivation_label,model)
                     if print_statistics :
                         print "%s % 7.2g / "%(model,cvalue(ccdo_fast(variability,operator="fldmean"))),
-                if print_statistics : print 
+                if print_statistics : print
             #
             for model,realization in models :
                 change_fields_internal(dic,model,realization,variable,ref_period,
                             projection_period,ref_experiment,experiment,season,
                             derivation_label, relative,standardized,print_statistics,
-                            common_grid,table,
-                            data_versions,deep)
-                if print_statistics : csync()
+                            common_grid,table,data_versions,deep,variab_sampling_args)
             #
             # Compute ensemble statistics
             if print_statistics :
@@ -344,7 +347,7 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
             #
             # Compute figure masks
             #
-            if variab_sampling_args != {} and variab_sampling_args is not None :
+            if do_variability :
                 if standardized :
                     agree_field="schange"
                     avg=smean
@@ -368,8 +371,7 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 def change_fields_internal(dic,model,realization,variable,ref_period,
                            projection_period,ref_experiment,experiment,season,
                            derivation_label,relative,standardized,print_statistics,
-                           common_grid,table,
-                           data_versions,deep):
+                           common_grid,table,data_versions,deep,variab_sampling_args):
     """
     See function change_fields for documentation 
     """
@@ -433,6 +435,11 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
         rchange_remapped=regridn(rchange,cdogrid=common_grid,**roption)
         feed("rchange",rchange_remapped)
     if standardized:
+        inter_ann_var=variability_field(None,model,realization,
+                            variable, season,derivation_label, standardized,
+                            variab_sampling_args,None,table,
+                            data_versions,
+                            deep=None,only_inter_annual=True)
         schange=ccdo2(change,inter_ann_var,operator="div")
         feed("schange_orig",schange)
         schange_remapped=regridn(schange,cdogrid=common_grid,**roption)
@@ -461,33 +468,49 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
 def variability_field(project,model,realization,variable,season,
                            derivation_label,standardized,
                            variab_sampling_args,common_grid,table,
-                           data_versions,models_with_enough_spinup,deep):
+                           data_versions,deep,
+                           only_inter_annual=False
+):
     """
-    Computes variability for the requested model, and regrid it to common grid
+    Computes variability (either multi-decadal 'a la AR5' or inter_annual) for the
+    requested model, and regrid it to common grid (provided it is not None)
+
+    If only_inter_annual is True, returns the inter_annual version
+
+    Otherwise, returns the multi-decadal, which, if standardized is True, is normalized 
+    (i.e. divided) by the inter_annual variability
     """
     #
     if realization not in data_versions["piControl"][variable][table][model] :
         realization=data_versions["piControl"][variable][table][model].keys()[0]
-    grid,_,_=data_versions["piControl"][variable][table][model][realization]
-    roption=choose_regrid_option(variable,table,model,grid)
     derivation=derivations[derivation_label]
     #
     args=variab_sampling_args.copy()
     args.update(derivation)
-    variability=variability_AR5(model,realization,variable,table,data_versions,
+    if only_inter_annual is False :
+        multi_dec_var=variability_AR5(model,realization,variable,table,data_versions,
                                 season=season,project=project, 
-                                models_with_enough_spinup=models_with_enough_spinup,
                                 **args)
-    #
-    if standardized :
+    if standardized or only_inter_annual :
         if "post_operator" in derivation or "operator" in derivation :
-            raise ValueError("Cannot yet compute inter-annual variability "+\
-                             "for a variable (%s) and a derivation (%s) which needs pre or post-processing"%\
-                             (variable,derivation_label))
-        inter_ann_var=control_inter_annual_variability(model,realization,variable,table,season,data_versions,**args)
-        variability=ccdo2(variability,inter_ann_var,operator="div")
+            raise ValueError("Cannot yet compute inter-annual variability for a variable "+\
+                             "(%s) and a derivation (%s) "%(variable,derivation_label)+\
+                             "which needs pre or post-processing" )
+        inter_ann_var=control_inter_annual_variability(model,realization,\
+                            variable,table,season,data_versions,**args)
+    #
+    if only_inter_annual :
+        variability = inter_ann_var
+    else :
+        if standardized :
+            variability=ccdo2(multi_dec_var,inter_ann_var,operator="div")
+        else:
+            variability = multi_dec_var
         #
-    variability=regridn(variability,cdogrid=common_grid,**roption)
+    if common_grid is not None :
+        grid,_,_=data_versions["piControl"][variable][table][model][realization]
+        roption=choose_regrid_option(variable,table,model,grid)
+        variability=regridn(variability,cdogrid=common_grid,**roption)
     return variability 
 
 def AR6_change_figure_with_caching(variable, experiment, season, 
@@ -503,7 +526,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
                         print_statistics=True , deep=None, read=True, write=True, 
                         common_grid="r360x180", mask=None,
                         variab_sampling_args={"house_keeping":True, "compute":True,"detrend":True, "shift":100,"nyears":20,"number":20},
-                        cache_dir="./aggregates",models_with_enough_spinup=["BCC-ESM1","CESM2-WACCM","CanESM5"],
+                        cache_dir="./aggregates",
                         drop=False, same_models_for_variability_and_changes=False
                         ) :
     """
@@ -568,8 +591,12 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models.sort()
         variab_models=changes_models
     else:
+        models_list=[ref_experiment,experiment]
+        if standardized :
+            # Then need a piControl run for standaridzing the variable by inter_annual variability
+            models_list.append("piControl")
         changes_models=models_for_experiments(data_versions,variable,table,
-                                           [ref_experiment,experiment],excluded_models,models)
+                                           models_list,excluded_models,models)
         changes_models.sort()
         variab_models=models_for_experiments(data_versions,variable,table,["piControl"],
                                              variability_excluded_models,variability_models)
@@ -598,13 +625,12 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     dic=None
     if len(aggregates)== 0 :
         #start_time = datetime.now()
-        print variable,derivations[derivation_label]
+        #print variable,derivations[derivation_label]
         aggregates,dic=change_fields(variable, experiments,seasons,ref_period,proj_period,
                                      models_dict, data_versions, derivation_label,
                                      relative,standardized,print_statistics,
                                      ref_experiment, variab_sampling_args,
-                                     common_grid,table,
-                                     models_with_enough_spinup)
+                                     common_grid,table)
         #
         #end_time = datetime.now()
         #duration = end_time - start_time
@@ -612,16 +638,17 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         if write and (not read or read_failed or deep) :
             dump_aggregates(aggregates,variable,derivation_label,ref_period,proj_period,cache_dir,tag,deep)
     #
-    if title is None :
-        title=field_type+" "+variable+" "+derivation_label+" "+season+" "+experiment
-    field     = aggregates[variable][experiment][season][field_type] [derivation_label]
-    if variab_sampling_args != {} and variab_sampling_args is not None :
-        hatching  = aggregates[variable][experiment][season]["hatching"] [derivation_label]
-        stippling = aggregates[variable][experiment][season]["stippling"][derivation_label]
+    d=aggregates[variable][experiment][season]
+    field = d[field_type] [derivation_label]
+    if "hatching" in d :
+        hatching  = d["hatching"] [derivation_label]
+        stippling = d["stippling"][derivation_label]
     else :
         stippling,hatching="",""
     #
     relative = ( "_rchange" in field_type )
+    if title is None :
+        title=field_type+" "+variable+" "+derivation_label+" "+season+" "+experiment
     plot1=AR6_change_figure(variable,derivation_label,field,stippling,hatching,
                             relative,labelbar,title,custom_plot,len(changes_models),mask)
     if drop :
@@ -775,7 +802,7 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
         plot_args.update(**relative_minmax(var2))
         plot_args.update(options=options_format%(labelbar,"%"))
     else:
-        print var2,minmax(var2)
+        #print var2,minmax(var2)
         plot_args.update(**minmax(var2))
         plot_args.update(**scale(var2))
         ustring=custom_plot.get("units",unit_string(var2))
@@ -796,8 +823,9 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
     #
     if mask is not None :
         field     = apply_mask(field,mask)
-        stippling = apply_mask(stippling,mask)
-        hatching  = apply_mask(hatching ,mask)
+        if stippling != "" : 
+            stippling = apply_mask(stippling,mask)
+            hatching  = apply_mask(hatching ,mask)
     return plot(field,hatching,"","",stippling,title=title, **plot_args)
 
 
