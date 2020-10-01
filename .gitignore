@@ -10,3 +10,5 @@ last.out
 /select_data_versions/verif_pr_day
 /notebooks/insert.png
 doc/build/*
+notebooks/figures
+/notebooks/prod
