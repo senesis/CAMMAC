@@ -44,9 +44,15 @@ def models_for_experiments(dic,variable,table,experiments,excluded_models=[],inc
     variants=dict()
     for exp in experiments :
         for model in dic[exp][variable][table] :
-            for real in dic[exp][variable][table][model].keys() :
-                feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
-
+            if included_models is None or model in included_models :
+                #print "adding for model:",model
+                for real in dic[exp][variable][table][model].keys() :
+                    feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
+    # for m in variants :
+    #     print m 
+    #     for exp in variants[m] :
+    #         print exp, variants[m][exp]
+    #     print
     return choose_variant(variants,experiments,excluded_models,included_models)
 
 def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,excluded_models=[],included_models=None):
@@ -75,6 +81,15 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
 
 
 def choose_variant(variants,experiments,excluded_models,included_models):
+
+    """
+    Provided with VARIANTS, a dict of variants , which keys are model and experiments, 
+    and values are lists of available variants
+
+    And EXPERIMENTS, a list of experiments
+
+    Choose a variant common to all experiments but piControl, preferring ...
+    """
 
     pairs=[]
     # Loop on models OK vs constraints, and having variant(s) for all experiments
@@ -128,7 +143,10 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                     # a prefered variant was not found ; keep any variant
                     chosen_variant=variants_set.pop()
                 pairs.append((model,chosen_variant))
-
+        # else:
+        #     print "model %s does not fit"%model , set(variants[model]), set(experiments) , included_models, excluded_models      
+                
+    pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
     return pairs
 
 def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=None,project="CMIP6",mip=None,subexp="none"):
@@ -227,6 +245,8 @@ models_data = {
     "CNRM-ESM2-1"   : ("CMIP6","CNRM-CERFACS"	  ,1850) ,
     "CanESM5"       : ("CMIP6","CCCma"		  ,5600) , # des manques pour pr et mrso
     "CanESM5-CanOE" : ("CMIP6","CCCma"		  ,None) , # des manques pour pr et mrso
+    "CMCC-CM2-SR5"  : ("CMIP6","CMCC"		  ,None) ,
+    "CMCC-CM2-HR4"  : ("CMIP6","CMCC"             ,None) ,
     "E3SM-1-0"      : ("CMIP6","E3SM-Project"	  ,1), 
     "E3SM-1-1"      : ("CMIP6","E3SM-Project"	  ,1850), 
     "E3SM-1-1-ECA"  : ("CMIP6","E3SM-Project"	  ,   None) , 
@@ -250,6 +270,7 @@ models_data = {
     "INM-CM4-8"     : ("CMIP6","INM"		  ,1850) ,
     "INM-CM5-0"     : ("CMIP6","INM"		  ,1996) ,
     "IPSL-CM6A-LR"  : ("CMIP6","IPSL"		  ,1850) ,
+    "IPSL-CM5A2-INCA":("CMIP6","IPSL"		  ,None) ,
     "KACE-1-0-G"    : ("CMIP6","NIMS-KMA"	  ,None) , 
     "MCM-UA-1-0"    : ("CMIP6","UA"		  ,   1) , 
     "MIROC-ES2L"    : ("CMIP6","MIROC"		  ,1850) ,
@@ -313,7 +334,7 @@ models_data = {
     "CESM1-CAM5-1-FV2":("CMIP5","NSF-DOE-NCAR"	  ,None) ,
     "CESM1-CAM5"    :("CMIP5","NSF-DOE-NCAR"	  ,None) ,
     "CESM1-WACCM"   :("CMIP5","NSF-DOE-NCAR"	  ,None) ,
-  }
+}
 
     
 def project_for_model(model):

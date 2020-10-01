@@ -12,8 +12,9 @@ import hashlib
 
 from climaf.api import *
 
-from variability import process_dataset, variability_AR5, agreement_fraction, \
-    stippling_hatching_masks_AR5, inter_annual_variability, control_inter_annual_variability
+from variability import process_dataset, variability_AR5, agreement_fraction_on_sign, \
+    agreement_fraction_on_lower, stippling_hatching_masks_AR5, \
+    inter_annual_variability, control_inter_annual_variability
 
 from ancillary import feed_dic, choose_regrid_option
 
@@ -21,7 +22,8 @@ from cancillary  import basin_average, mean_or_std, ensemble_stat, walsh_seasona
 
 
 from mips_et_al import table_for_var_and_experiment, project_for_experiment, project_for_model,\
-     institute_for_model, mip_for_experiment, models_for_experiments, read_versions_dictionnary
+     institute_for_model, mip_for_experiment, models_for_experiments, models_for_experiments_multi_var, \
+     read_versions_dictionnary
 
 from climaf.operators import gini
 
@@ -59,13 +61,13 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
                             variable,table,time_stat,
                             data_versions,slices,stats_list,basins_data,
                             fprint=True,excluded_models=[], included_models=None,
-                            tas=True,relative=True,must_have_vars=[], compute=False, house_keeping=False): 
+                            must_have_vars=[],
+                            relative=True,compute=False, house_keeping=False): 
     """
-    Feed dic MODEL_CHANGES with change values for spatially aggregated TIME_STAT of VARIABLE 
+    Feed dic MODEL_CHANGES with change values for TIME_STAT of VARIABLE spatially averaged
     over basins listed in BASINS_DATA["basins"] (which can include "globe"); this with 
     respect to a REF_PERIOD and for a series of time SLICES in a given SCENARIO; and for the list of 
-    models which, according to dict DATA_VERSIONS, which provide data for both experiments, 
-    and both for VARIABLES and the variables in MUST_HAVE_VARS.
+    models which, according to dict DATA_VERSIONS, provide VARIABLE for both experiments, 
     List EXCLUDED_MODELS allows to discard models
     List INCLUDED_MODELS, if not None, limits models used
     
@@ -74,14 +76,14 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
     Structure of MODEL_CHANGES (which forgets about TABLE) is :
        model_changes[scenario][variable][time_stat][basin][period][model]=change_value
     
-    Returns a dict of ensemble stats of changes across the ensemble of models, for STATS_LIST :
+    Also returns a dict of ensemble stats of changes across the ensemble of models, for STATS_LIST :
       ens_changes[basin][ensemble_stat][period] = stat_value
     For syntax and semantics of STATS_LIST, see function `py:func:cancillary.ensemble_stat()`
 
     BASINS_DATA is a dict with keys : 
       - basins : list of basin names for those basins to process
       - basins_file : filename for the file coding basins
-      - basins_key : correspondance between basin names and basin numbers in basins_file
+      - basins_key : a dict of correspondance between basin names and basin numbers in basins_file
       
     Change values are relative changes, except if RELATIVE=False
     """
@@ -91,7 +93,11 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
     # Compute variables values on ref_period and slices, 
     values=dict()
     if fprint : print "%6s %s %s %s"%(scenario,variable,table,time_stat),
-    models=models_for_experiments(data_versions,variable,table,[scenario,ref_experiment],excluded_models,included_models)
+    #models=models_for_experiments(data_versions,variable,table,[scenario,ref_experiment],excluded_models,included_models)
+    pairs=must_have_vars + [ (variable,table) ]
+    #print pairs,included_models,excluded_models
+    models=models_for_experiments_multi_var(data_versions,pairs,[scenario,ref_experiment],excluded_models,included_models)
+    #print "models=",models
     for model,variant in models :
         #if fprint : print "%6s %-15s %s"%(scenario,model,variable),
         if fprint : print " %s"%(model),
@@ -99,14 +105,14 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
             #if fprint : print "%s"%period[0:3],
             for basin in lbasins :
                 if basin == "globe" :
-                    value=cvalue(mean_or_std(scenario, ref_experiment, model, variant, "anm", variable, time_stat, table,
-                                             period, data_versions,ccdo_fast,{"operator":"fldmean"},
-                                             compute=compute,house_keeping=house_keeping))
+                    operator=ccdo_fast
+                    args={"operator":"fldmean"}
                 else:
-                    value=cvalue(mean_or_std(scenario,ref_experiment,model,variant,"anm",variable,time_stat, table, 
-                                             period, data_versions,basin_average,
-                                             {"model":model,"basin":basin,"basins":basins_data,"compute":True},
-                                             compute=compute,house_keeping=house_keeping))
+                    operator=basin_average
+                    args={"model":model,"basin":basin,"basins":basins_data,"compute":True}
+                value=cvalue(mean_or_std(scenario, ref_experiment, model, variant, "anm", variable, time_stat, table,
+                                         period, data_versions, operator, args,
+                                         compute=compute,house_keeping=house_keeping))
                 feed_dic(values,value,model,basin,period)
     if fprint : print
     #csync()
@@ -197,10 +203,9 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                   variab_sampling_args= {"house_keeping":True,"compute":True,"detrend":True,
                                          "shift":100,"nyears":20,"number":20},
                   common_grid=None,table=None,
-                  deep=None) :
+                  deep=None, threshold=None,low_change_agree_threshold=1.0) :
     
-    """
-    Computes a series of change fields for one
+    """Computes a series of change fields for one
     VARIABLE and a list of EXPERIMENTS, for period PROJECTION_PERIOD
     with respect to ref_experiment for REF_PERIOD. Computed fields 
     are e.g. mean change and median realtive change. See 'aggregates' below for 
@@ -223,9 +228,9 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 
     Toggles RELATIVE activate the computation of relative change (in addition to plain 
     change). Field name suffix is "_rchange". 
-      - "mean_rchange" is the ensemble mean of relative changes
+      - "mean_rchange" is the ensemble mean of (per-model) relative changes
       - "means_rchange" is the relative change of ensemble means
-      - "median_rchange" is the ensemble median of relative changes
+      - "median_rchange" is the ensemble median of (per-model) relative changes
 
     Toggles STANDARDIZED activate the computation of change standardized by its 
     interannual variability. Field name suffix is "_schange". 
@@ -233,11 +238,15 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
       - "median_schange" is the ensemble median of standardized changes
     The (multi-decadal) variability is then also standardized the same way.
 
-    Argument MODELS_WITH_ENOUGH_SPINUPS provides a list of models
-    which are supposed to have a sufficiently long spin-up period
-    before published piControl data, so that the AR5 guidelines of
-    discading the first 100 years of piControl can be relaxed (see function 
-    variability_AR5)
+    Arg THRESHOLD (if not None) is used when relative is True, as a floor value of
+    the reference field below which the per-model relative changes are set to missing
+
+    Arg LOW_CHANGE_AGREE_THRESHOLD provides the threshold for
+    computing the field of fractionnal agreement on a low change; it
+    is compared to the ratio of absolute value of change by internal
+    variability for each model separately for deciding for a low
+    change. The fraction of agreement is returned with key
+    "agree_low" (see below)
 
     The variable is sought in CMIP6 table Amon or Lmon (depending on the 
     variable), except specified otherwise using arg TABLE (e.g. value 'day' is 
@@ -265,10 +274,11 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 
         * mean_change, mean_rchange, mean_schange, means_rchange
         * median_change, median_rchange, median_schange, 
-        * median_variability, agreement_fraction,  stippling, hatching
+        * median_variability, agreement_fraction,  stippling, hatching, low_change_agreement_fraction
 
     - field=dic[experiment][season][key][derivation_label][model]
-      where key has values : reference, projection, change, rchange, schange, variability
+      where key has values : reference, projection, change, rchange, schange, nchange, variability
+    TBD : document keys above
 
     """
     aggregates=dict()
@@ -297,24 +307,34 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
         for season in seasons :
             if not print_statistics: print experiment,season,
             #
+            #
+            for model,realization in models :
+                change_fields_internal(dic,model,realization,variable,ref_period,
+                            projection_period,ref_experiment,experiment,season,
+                            derivation_label, relative,standardized,print_statistics,
+                            common_grid,table,data_versions,deep,variab_sampling_args,
+                            threshold)
+            #
             if do_variability :
                 if print_statistics : print "Variabilities :",
                 for model,realization in control_models :
                     variability=variability_field(project,model,realization,
                             variable, season,derivation_label, standardized,
                             variab_sampling_args,common_grid,table,
-                            data_versions)
+                            data_versions,deep)
                     feed_dic(dic,variability,experiment,season,"variability",derivation_label,model)
                     if print_statistics :
                         print "%s % 7.2g / "%(model,cvalue(ccdo_fast(variability,operator="fldmean"))),
+                    #
+                    # Compute ratio of change to internal variability for models which allow for
+                    # (done on common grid)
+                    if model in [ m for m,r in models ]:
+                        change=dic[experiment][season]["change"][derivation_label][model]
+                        nchange=ccdo2(change,variability,operator="div")
+                        feed_dic(dic,nchange,experiment,season,"nchange",derivation_label,model)
+
                 if print_statistics : print
-            #
-            for model,realization in models :
-                change_fields_internal(dic,model,realization,variable,ref_period,
-                            projection_period,ref_experiment,experiment,season,
-                            derivation_label, relative,standardized,print_statistics,
-                            common_grid,table,data_versions,deep,variab_sampling_args)
-            #
+                
             # Compute ensemble statistics
             if print_statistics :
                 print "%s medians :"%experiment,
@@ -330,9 +350,10 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 rmedian=ccdo_ens(cens(dic[experiment][season]["rchange"][derivation_label]),operator='enspctl,50')
                 feed(rmedian,"median_rchange")
                 # Also compute the relative change of ensemble means
-                ref_ensavg=ccdo_ens(cens(dic[experiment][season]["reference"][derivation_label]),operator='ensmean')
-                rmeans=ccdo2(ccdo2(ensavg,ref_ensavg,operator="sub"),ref_ensavg,operator="mulc,100 -div")
-                feed(rmean,"means_rchange")
+                ref_ensavg=ccdo_ens(cens(dic[experiment][season]["reference_remapped"][derivation_label]),operator='ensmean')
+                proj_ensavg=ccdo_ens(cens(dic[experiment][season]["projection_remapped"][derivation_label]),operator='ensmean')
+                rmeans=ccdo2(ccdo2(proj_ensavg,ref_ensavg,operator="sub"),ref_ensavg,operator="mulc,100 -div")
+                feed(rmeans,"means_rchange")
             if print_statistics :
                 print "relative %7.2g %%"%cvalue(ccdo_fast(rmedian,operator="fldpctl,50")),
             if standardized :
@@ -345,7 +366,7 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 print 
             #
             #
-            # Compute figure masks
+            # Compute stippling and hatching fields for the figure 
             #
             if do_variability :
                 if standardized :
@@ -354,14 +375,18 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 else :
                     agree_field="change"
                     avg=ensavg
-                agreef=agreement_fraction(cens(dic[experiment][season][agree_field][derivation_label]))
-                feed(agreef,"agreement_fraction")
+                agreef=agreement_fraction_on_sign(cens(dic[experiment][season][agree_field][derivation_label]))
+                feed(agreef,"agreement_fraction_on_sign")
                 medvar=ccdo_ens(cens(dic[experiment][season]["variability"][derivation_label]),operator='enspctl,50')
                 feed(medvar,"median_variability")
                 #
                 s,h=stippling_hatching_masks_AR5(avg,medvar,agreef)
                 feed(s,"stippling")
                 feed(h,"hatching")
+                #
+                # Agreement on low change wrt OWN internal variability
+                agree_low=agreement_fraction_on_lower(cens(dic[experiment][season]["nchange"][derivation_label]),low_change_agree_threshold)
+                feed(agree_low,"agree_low")
             #
             print
     return aggregates, dic
@@ -371,7 +396,8 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 def change_fields_internal(dic,model,realization,variable,ref_period,
                            projection_period,ref_experiment,experiment,season,
                            derivation_label,relative,standardized,print_statistics,
-                           common_grid,table,data_versions,deep,variab_sampling_args):
+                           common_grid,table,data_versions,deep,variab_sampling_args,
+                           threshold ):
     """
     See function change_fields for documentation 
     """
@@ -400,18 +426,22 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
     reference_ds=ds(**reference_dict)
     reference=process_dataset(reference_ds,season,**derivation)
     feed("reference",reference)
+    reference_remapped=regridn(reference,cdogrid=common_grid,**roption)
+    feed("reference_remapped",reference_remapped)
     if relative  :
-        if variable in ["pr","evspsbl", "P-E" ] and derivation_label not in ["dry","drain"] :
-            zero_dot_1_mm_day=0.1/(24*3600) # in kg m2 s-1
-            zero_dot_zero1_mm_day=0.01/(24*3600) # in kg m2 s-1
-            epsilon=1.e-20
-            #
-            threshold=0.
-            threshold=zero_dot_zero1_mm_day
-            if variable=="evspsbl" :
-                thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-%f,%f"%(threshold,threshold))
-            else:
-                thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
+        # if variable in ["pr","evspsbl", "P-E" ] and derivation_label not in ["dry","drain"] :
+        #     zero_dot_1_mm_day=0.1/(24*3600) # in kg m2 s-1
+        #     zero_dot_zero1_mm_day=0.01/(24*3600) # in kg m2 s-1
+        #     epsilon=1.e-20
+        #     #
+        #     threshold=0.
+        #     threshold=zero_dot_zero1_mm_day
+        #     if variable=="evspsbl" :
+        #         thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-%f,%f"%(threshold,threshold))
+        #     else:
+        #         thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
+        if threshold is not None :
+            thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
         else :
             thresholded_reference=reference
     #
@@ -423,6 +453,7 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
     projection_ds=ds(**projection_dict)
     projection=process_dataset(projection_ds,season,**derivation)
     feed("projection",projection)
+    feed("projection_remapped",regridn(projection,cdogrid=common_grid,**roption))
     #
     # Compute absolute and relative changes, and regrid to common grid
     change=ccdo2(projection,reference,operator="sub")
@@ -527,10 +558,10 @@ def AR6_change_figure_with_caching(variable, experiment, season,
                         common_grid="r360x180", mask=None,
                         variab_sampling_args={"house_keeping":True, "compute":True,"detrend":True, "shift":100,"nyears":20,"number":20},
                         cache_dir="./aggregates",
-                        drop=False, same_models_for_variability_and_changes=False
+                        drop=False, same_models_for_variability_and_changes=False,
+                        threshold=None, stippling="stippling"
                         ) :
-    """
-    This is a wrapper around two functions :
+    """This is a wrapper around two functions :
 
      - 'change_fields', wich computes various fields related to the change of some variable between a 
        projection and an reference period in refrence experiment (either a plain or a derived variable)
@@ -557,6 +588,14 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     enough duration of that run). If set to False, one can control the list of models used for
     computing variability with arguments VARIABILITY_MODElS and VARIABILITY_EXCLUDED_MODElS in a way 
     similar to the models used for computing changes
+
+    Argument STIPPLING allows to choose if the stippling is applied to :
+
+      - areas with mean change less than one standard deviation of internal variability (default, 
+        stippling="stippling") or 
+
+      - areas where 90% of models agree that the change is less than 2
+        standard deviation of their own internal variability (if stippling="agree_low")
 
     Argument DEEP, if set to True, will force CliMAF to restart all computations from scratch rather than 
     using its (own) cached values. This is done whatever the value of READ.
@@ -630,7 +669,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
                                      models_dict, data_versions, derivation_label,
                                      relative,standardized,print_statistics,
                                      ref_experiment, variab_sampling_args,
-                                     common_grid,table)
+                                     common_grid,table,threshold)
         #
         #end_time = datetime.now()
         #duration = end_time - start_time
@@ -642,7 +681,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     field = d[field_type] [derivation_label]
     if "hatching" in d :
         hatching  = d["hatching"] [derivation_label]
-        stippling = d["stippling"][derivation_label]
+        stippling = d[stippling][derivation_label]
     else :
         stippling,hatching="",""
     #
@@ -764,7 +803,7 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
         else                                   : return "?"
     #
     def scale(variable) :
-        if variable in ["pr","P-E","mrro"] : return {"scale":24.*3600 }
+        if variable in ["pr","P-E","mrro","evspsbl"] : return {"scale":24.*3600 }
         else : return {}
 
     def minmax(variable) :

@@ -14,7 +14,7 @@ import json, os, os.path
 
 # A dictionnary of pretty labels for some acronyms
 prettier_label={
-    "ssp126":"SSP1-1.9","ssp126":"SSP1-1.9","ssp245":"SSP2-4.5","ssp585":"SSP5-8.5",
+    "ssp126":"SSP1-1.9","ssp126":"SSP1-2.6","ssp245":"SSP2-4.5","ssp585":"SSP5-8.5",
     #
     "DJF":"DJF","JJA":"JJA","ann":"All seasons","ANN":"All seasons",
     #

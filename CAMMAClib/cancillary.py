@@ -107,7 +107,7 @@ def basin_average(data,model,basin,basins,compute=False,house_keeping=False,test
     if basin not in bkey :
         raise ValueError("basin average cannot process basin %s"%basin)
         
-    if "ccdo2_flip" not in climaf.operators.scripts :
+    if "ccdo2_flip" not in cscripts :
         cscript('ccdo2_flip', 'cdo ${operator} ${in_2} ${in_1} ${out}')
     from climaf.operators import ccdo2_flip
         

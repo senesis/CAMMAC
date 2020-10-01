@@ -82,12 +82,12 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
         # In CMIP6, some models have enough spinup before piControl start, but a too short piControl length
         # We assume that this has been dealt with at the stage of data selection, and allow
         # to release the constraint on shift at the beginning of the data period
-        alt_begin=end-duration
+        alt_begin=end-duration+1
         if alt_begin >= true_begin :
             begin=alt_begin                
         else :
-        message="Duration for %s %s %s %s %s %s is too short : [%d - %d] even with no shift %d is shorter than %d years "%\
-                        (model,variable,table,realization,version,grid,begin,end,shift,duration)
+            message="Duration for %s %s %s %s %s %s is too short : [%d - %d] even with no shift %d is shorter than %d years "%\
+                        (model,variable,table,realization,version,grid,true_begin,end,shift,duration)
             raise ValueError(message)
     #
     period="%g-%g"%(begin,begin+duration-1)
@@ -213,7 +213,7 @@ def init_trend():
         cscript("csubtrend", "cdo subtrend ${in_1} ${in_2} ${in_3} ${out}")
 
 
-def agreement_fraction(ensemble):
+def agreement_fraction_on_sign(ensemble):
     """
     Returns the field of fraction of members of ENSEMBLE which agree on their sign 
     """
@@ -231,6 +231,20 @@ def agreement_fraction(ensemble):
     #
     return fchange
 
+def agreement_fraction_on_lower(ensemble,threshold):
+    """
+    Returns the field of fraction of members of ENSEMBLE which agree on "|value| <= threshold" 
+    """
+
+    # 
+    # Count absolute values below threshold values
+    lows=ccdo_fast(ccdo_fast(ensemble,operator="abs"),operator="lec,%g"%threshold)
+    #
+    nb=len(ensemble)
+    fagree=ccdo_fast(ccdo_ens(lows,operator="enssum"),operator="divc,%d.0"%nb)
+    #
+    return fagree
+
 
 def stippling_hatching_masks_AR5(change,variability,agreement_fract):
     """
@@ -240,12 +254,13 @@ def stippling_hatching_masks_AR5(change,variability,agreement_fract):
       - a field of variability standard deviation VARIABILITY
       - a field of fraction of members which agree on sign of changes AGREEMENT_FRACTION
 
-    Hatching : change is less than one standard deviation of variability
+    Hatching : value 1 if change is less than one standard deviation of variability
 
-    Stippling : change is over two standard deviations of variability + agreement of 90% of models on change sign
+    Stippling : value 1 if change is over two standard deviations of variability + agreement 
+    of 90% of models on change sign
 
-    Special case : if VARIABILITY is None, reyurned stippling represents only the 90% agreement, and 
-    returned hatching is the empty string (for compatibility with CliMAF plot operator)
+    Special case : if VARIABILITY is None, returned stippling and hatching is the empty 
+    string (for compatibility with CliMAF plot operator)
 
     """
     masku=ccdo_fast(agreement_fract,operator="gec,0.9")
@@ -260,7 +275,7 @@ def stippling_hatching_masks_AR5(change,variability,agreement_fract):
         stippling=ccdo2(maskt,masku,operator="min") #
     else :
         hatching=""
-        stippling=masku
+        stippling=""
         
     return stippling,hatching
 
