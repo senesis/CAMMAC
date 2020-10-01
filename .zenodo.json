@@ -1,0 +1,29 @@
+{
+    "language": "eng", 
+    "license": "CECILL-C", 
+    "title": "CAMMAC - Climate Change Analysis using Multi-Model outputs and CliMAF ", 
+    "related_identifiers": [
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.3883976", 
+            "relation": "cites", 
+            "resource_type": "software"
+        }, 
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.4061814", 
+            "relation": "isVersionOf"
+        }
+    ], 
+    "upload_type": "software", 
+    "keywords": [
+        "Climate change ; CMIP ; climate models"
+    ], 
+    "creators": [
+        {
+            "name": "St\u00e9phane S\u00e9n\u00e9si"
+        }
+    ], 
+    "access_right": "open", 
+    "description": "<p>CAMMAC allows Climate Change Analysis using Multi-Model outputs and <a href=\"https://climaf.readthedocs.io/en/master/\">CliMAF</a>.</p>\n\n"
+}
