@@ -11,10 +11,16 @@ cd $figname
 cat <<EOF >fig_SOD_TS2.10.yaml
 
 excluded_models :
-   sos   : [ IPSL-CM6A-LR]   # Issue for CDO remap : ssp245 data have variable 'area' without coordinates
-   P-E   : [ EC-Earth3-Veg ] # Issue with evspsbl version latest for historical,r4i1p1f1 for tag 20200719d
+   sos   : [ IPSL-CM6A-LR]   # Issue for CDO remap : ssp245,picontrol data have variable 'area' without coordinates
+   P-E   : [ EC-Earth3-Veg ] # EC-Earth : Issue with evspsbl version latest for historical,r4i1p1f1 for tag 20200719d
+   pr_day: [ EC-Earth3-Veg, EC-Earth3 ] # EC-Earth : Issue with mergetime 
 
-use_cached_proj_fields : True   
+variability_excluded_models :
+   sos   : [ IPSL-CM6A-LR]   # Issue for CDO remap : ssp245,picontrol data have variable 'area' without coordinates
+   P-E   : [ ACCESS-ESM1-5 ] # ACCESS-ESM1-5 : Pr and evspsbl don't have common period, as of 20200913
+   pr_day: [ EC-Earth3-Veg, EC-Earth3 ] # EC-Earth : Issue with mergetime 
+
+use_cached_proj_fields : True
 
 EOF
 

@@ -12,13 +12,18 @@ cd $figname
 
 cat <<EOF >fig_SOD_8.27.yaml
 
-basins : [ Amazon , Lena, Yangtze ]
+compute_basins : [ Amazon , Lena, Yangtze , Mississippi, Danube, Niger ]
 
 variables: 
   - [ mrro , Lmon, mean ]
   - [ mrro , Lmon, std ]
 
-do_compute : False
+do_test    : False
+do_compute : false
+
+do_plot : True
+plot_basins : [ Amazon , Yangtze, Lena  ]
+
 
 EOF
 

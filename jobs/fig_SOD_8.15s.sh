@@ -15,11 +15,14 @@ do_test : False
 figure_name : Fig8-15s
 variable    : pr
 table       : Amon
-field_type  : mean_rchange
+field_type  : means_rchange
 custom_plot :
   units: "%"
-plot_for_each_model    : [ "reference", "projection", "change", "rchange", "variability" ]
-#plot_for_each_model    : [ "reference", "change", "rchange" ]
+#  min : -300
+#  max : 300
+#  delta : 30
+#plot_for_each_model    : [ "reference", "projection", "change", "rchange", "variability" ]
+#plot_for_each_model    : [ "reference_remapped", "rchange" ]
 #ranges : {}
 ranges : 
   reference   : { scale : 24*3600 , units : mm/d, min : 0 , max : 10 , delta : 0.5 }
@@ -29,7 +32,7 @@ ranges :
   #rchange     : { colors : "-10000 -1000 -100 -50 -20 -10 0 10 20 50 100 1000 10000" , units : "%" }
   variability : { scale : 24*3600 , units : mm/d, min : 0 , max : 1 , delta : 0.05 }
 
-use_cached_proj_fields   : True
+use_cached_proj_fields   : False
 write_cached_proj_fields : True
 print_statistics         : True
 

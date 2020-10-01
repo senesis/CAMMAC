@@ -10,9 +10,17 @@ cd $figname
 
 cat <<EOF >fig_SOD_8.19.yaml
 
+figure_name : Fig8-19
+variable    : mrso
+table       : Lmon
+field_type  : mean_schange
+custom_plot : {"colors": "-5 -2 -1 -0.5 -0.25 0. 0.25 0.5 1 2 5", "units":"-", "color":"AR6_Precip_12s"} 
+do_test     : False 
+use_cached_proj_fields : False
 figure_mask : $D/data/mask_hide_antarctic_360x180.nc
 
 plot_for_each_model : [ "reference", "projection", "change", "rchange", "schange", "variability" ]
+plot_for_each_model : [  ]
 
 ranges :  {
   "reference"  : { "min" : 0., "max" : 3000. , "delta" : 200. } ,

@@ -10,7 +10,9 @@ cd $figname
 
 # Create input parameters file 
 cat <<EOF >fig_SOD_8.17.yaml
-use_cached_proj_fields : True
+excluded_models        : [ EC-Earth3 , EC-Earth3-Veg ]  # Issue with mergetime
+variability_excluded_models : [ EC-Earth3 , EC-Earth3-Veg ]  # Issue with mergetime
+use_cached_proj_fields : False
 print_statistics       : False
 
 EOF

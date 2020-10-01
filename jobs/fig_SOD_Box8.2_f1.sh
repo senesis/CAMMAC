@@ -11,8 +11,8 @@ cd $figname
 
 cat <<EOF >fig_SOD_Box8.2_f1.yaml
 
-use_cached_proj_fields : False
-use_cached_ref_field   : False
+use_cached_proj_fields : True
+use_cached_ref_field   : True
 print_statistics       : False
 plot_for_each_model : [ "reference", "projection", "change", "rchange", "variability" ]
 

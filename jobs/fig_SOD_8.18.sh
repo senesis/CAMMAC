@@ -11,9 +11,10 @@ cd $figname
 
 # Create input parameters file 
 cat <<EOF >fig_SOD_8.18.yaml
+figure_name : Fig8-18
 variable : evspsbl
 table    : Amon
-field_type : mean_rchange
+field_type : means_rchange
 custom_plot :
   units: "%"
 use_cached_proj_fields : False

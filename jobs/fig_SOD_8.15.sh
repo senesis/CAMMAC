@@ -14,11 +14,11 @@ cat <<EOF >fig_SOD_8.15.yaml
 figure_name : Fig8-15
 variable    : pr
 table       : Amon
-field_type  : mean_rchange
+field_type  : means_rchange
 custom_plot :
   units: "%"
-use_cached_proj_fields : False
-plot_for_each_model    : [ "reference", "change", "rchange", "variability" ]
+
+#plot_for_each_model    : [ "reference", "change", "rchange", "variability" ]
 #ranges : {}
 ranges : 
   reference   : { scale : 24*3600 , units : mm/d, min : 0 , max : 10 , delta : 0.5 }
@@ -26,7 +26,9 @@ ranges :
   change      : { scale : 24*3600 , units : mm/d, min : -10 , max : 10 , delta : 1 }
   rchange     : { min : -100. , max : 100., delta : 10. }
   variability : { scale : 24*3600 , units : mm/d, min : 0 , max : 1 , delta : 0.05 }
-use_cached_proj_fields : True
+
+use_cached_proj_fields : False
+#use_cached_proj_fields : True
 print_statistics       : False
 
 EOF
