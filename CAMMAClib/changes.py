@@ -630,12 +630,12 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models.sort()
         variab_models=changes_models
     else:
-        models_list=[ref_experiment,experiment]
+        exps=[ref_experiment,experiment]
         if standardized :
             # Then need a piControl run for standaridzing the variable by inter_annual variability
-            models_list.append("piControl")
+            exps_list.append("piControl")
         changes_models=models_for_experiments(data_versions,variable,table,
-                                           models_list,excluded_models,models)
+                                           exps_list,excluded_models,models)
         changes_models.sort()
         variab_models=models_for_experiments(data_versions,variable,table,["piControl"],
                                              variability_excluded_models,variability_models)
@@ -740,7 +740,8 @@ def read_aggregates(ref_period,proj_period,tag,cache_dir) :
     return d
 
 
-def AR6_change_figure(variable, derivation_label, field, stippling="", hatching="", relative=True, labelbar="True",
+def AR6_change_figure(variable, derivation_label, field, stippling="", hatching="",
+                      relative=True, labelbar="True", shade=True,
                       title=None, custom_plot={}, number=None, mask=None) :
     """
 
@@ -771,13 +772,14 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
     days per year) and 'drain' (daily rain depth for rainy days)
 
     """
-    plot_args=dict(
-        proj="Robinson", mpCenterLonF=2.0, gsnLeftString="", vcb=False,
-        shading_options="gsnShadeHigh=3|gsnAddCyclic=True", shade_above=0.9, # Hatching for 1st mask
+    plot_args=dict( proj="Robinson", mpCenterLonF=2.0, gsnLeftString="", vcb=False)
+    if hatching != "" and shade :
+        plot_args.update(shading_options="gsnShadeHigh=3|gsnAddCyclic=True",
+                         shade_above=0.9) 
+    if stippling != "" :
          # Stippling for 2nd mask
-        shade2_options="gsnShadeHigh=17|gsnShadeFillScaleF=1|gsnShadeFillDotSizeF=0.004|gsnAddCyclic=True", 
-        shade2_below=-0.1, shade2_above=0.9,
-    )
+        plot_args.update( shade2_options="gsnShadeHigh=17|gsnShadeFillScaleF=1|gsnShadeFillDotSizeF=0.004|gsnAddCyclic=True", 
+                          shade2_below=-0.1, shade2_above=0.9)
     options_format="lbLabelBarOn=%s|lbBoxEndCapStyle=TriangleBothEnds|lbLabelFont=helvetica|" +\
         "lbTitleOn=True|lbTitleString='%s'|lbTitleFont=helvetica|lbTitlePosition=Bottom|"+\
         "lbLabelFontHeightF=0.015|cnMissingValFillColor=grey|cnInfoLabelOn=False|"+\
@@ -864,6 +866,7 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
         field     = apply_mask(field,mask)
         if stippling != "" : 
             stippling = apply_mask(stippling,mask)
+        if hatching != "" : 
             hatching  = apply_mask(hatching ,mask)
     return plot(field,hatching,"","",stippling,title=title, **plot_args)
 
