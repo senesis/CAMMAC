@@ -10,6 +10,8 @@ cd $figname
 
 cat <<EOF >fig_SOD_TS2.10.yaml
 
+do_test  : False
+
 excluded_models :
    sos   : [ IPSL-CM6A-LR]   # Issue for CDO remap : ssp245,picontrol data have variable 'area' without coordinates
    P-E   : [ EC-Earth3-Veg ] # EC-Earth : Issue with evspsbl version latest for historical,r4i1p1f1 for tag 20200719d
@@ -21,6 +23,8 @@ variability_excluded_models :
    pr_day: [ EC-Earth3-Veg, EC-Earth3 ] # EC-Earth : Issue with mergetime 
 
 use_cached_proj_fields : True
+
+version : "P_E_nr"
 
 EOF
 

@@ -630,9 +630,9 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models.sort()
         variab_models=changes_models
     else:
-        exps=[ref_experiment,experiment]
+        exps_list=[ref_experiment,experiment]
         if standardized :
-            # Then need a piControl run for standaridzing the variable by inter_annual variability
+            # Then need a piControl run for standardizing the variable by inter_annual variability
             exps_list.append("piControl")
         changes_models=models_for_experiments(data_versions,variable,table,
                                            exps_list,excluded_models,models)
@@ -689,7 +689,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     if title is None :
         title=field_type+" "+variable+" "+derivation_label+" "+season+" "+experiment
     plot1=AR6_change_figure(variable,derivation_label,field,stippling,hatching,
-                            relative,labelbar,title,custom_plot,len(changes_models),mask)
+                            relative,labelbar,True,title,custom_plot,len(changes_models),mask)
     if drop :
         cdrop(plot1)
     #
@@ -776,7 +776,7 @@ def AR6_change_figure(variable, derivation_label, field, stippling="", hatching=
     if hatching != "" and shade :
         plot_args.update(shading_options="gsnShadeHigh=3|gsnAddCyclic=True",
                          shade_above=0.9) 
-    if stippling != "" :
+    if stippling != "" and shade :
          # Stippling for 2nd mask
         plot_args.update( shade2_options="gsnShadeHigh=17|gsnShadeFillScaleF=1|gsnShadeFillDotSizeF=0.004|gsnAddCyclic=True", 
                           shade2_below=-0.1, shade2_above=0.9)

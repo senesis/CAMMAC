@@ -18,3 +18,5 @@ notebooks/figures
 /select_data_versions/published_nok.json
 select_data_versions/timestamps
 select_data_versions/*json
+/notebooks/change_rate_basins_data.nc
+/select_data_versions/missing_datasets.txt
