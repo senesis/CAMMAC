@@ -1,5 +1,6 @@
 import requests  # use pip or conda to install it if needed
 import json
+from datetime import datetime
 
 def query_errata_service(dataset_drs,base_url="https://errata.es-doc.org/1/"):
 
@@ -99,7 +100,6 @@ def analyze_erratas(fn,max_count=None, do_print=True, panel=None, variable=None)
                 for description in berrata2models[variable][severity] :
                     print "\t\t",description,berrata2models[variable][severity][description]
     #
-    from datetime import datetime
     berrata2models["Errata service query date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     berrata2models["Errata service query url"]  = errata_base_url
     #

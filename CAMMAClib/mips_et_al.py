@@ -183,16 +183,30 @@ def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=No
             institute = institute_for_model(model,mip)
             drs='%s.%s.%s.%s.%s'%(project,mip,institute,model,experiment)
             realization=variant
+            if table == 'yr' :
+                if variable in [ 'dday' , 'drain' ]:
+                    table = 'day'
+                    variable = 'pr'
+                else :
+                    raise ValueError("Cannot process variable %s in table 'yr' ")
             if experiment=="piControl" and variant not in data_versions[experiment][variable][table][model] :
                 realization=data_versions[experiment][variable][table][model].keys()[0]
             try :
                 grid,version,_=data_versions[experiment][variable][table][model][realization]
             except :
                 raise ValueError("Cannot get data_version for %s %s %s %s %s "%(experiment,variable,table,model,realization))
-            rep+="%-60s %6s %10s %4s %10s %3s %9s"%(drs,subexp,realization,table,variable,grid,version)
-            if panel_letter is not None :
-                rep+=" "+panel_letter
-            rep += "\n"
+            if variable != "P-E" :
+                pairs=[ (variable,version) ]
+            else :
+                # CliMAF has set 'last' for evspsbl version -> Search for version of evspsbl
+                # in data_versions, assuming that last version is the unique one
+                _,evspsbl_version,_= data_versions[experiment]['evspsbl'][table][model][realization]
+                pairs=[ ('pr',version) , ('evspsbl',evspsbl_version) ]
+            for vari,vers in pairs :
+                rep+="%-60s %6s %10s %4s %10s %3s %9s"%(drs,subexp,realization,table,vari,grid,vers)
+                if panel_letter is not None :
+                    rep+=" "+panel_letter
+                rep += "\n"
     return rep
     
 def project_for_experiment(experiment):

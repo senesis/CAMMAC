@@ -23,6 +23,8 @@ prettier_label={
     #
     "drain" : "daily precipitation intensity",
     "dry":"dry days per year",
+    "ydrain" : "daily precipitation intensity",
+    "ydry":"dry days per year",
     #
     "mean_change"  :"mean change"  , "mean_schange"  :"mean standardized change"  , "mean_rchange"  : "mean percentage change",
     "means_rchange"  : "percentage change of mean",
@@ -33,22 +35,43 @@ prettier_label={
 # A constant useful when defining dry days
 one_mm_per_day="%g"%(1./(24.*3600.)) # in S.I.
 
-def feed_dic(dic,value,*keys):
+def feed_dic(dic,value,*keys,**kwargs):
     """ 
     Similar to bash  'mkdir -p' for a dict() : creates intermediate levels of keys
     for storing value VALUE in dict DIC, as e.g. :
     
     >>> d=dict()
-    >>> feed_dic(d,3,1,2)
+    >>> feed_dic(d,3,1,"q")
     >>> print "d=",d
-    d= {1: {2: 3}}
-    >>> feed_dic(d,"a",1,3,4)
+    d= {1: {"q": 3}}
+    >>> feed_dic(d,'a',1,4,"key")
     >>> print "d=",d
-    d= {1: {2: 3, 3: {4: 'a'}}}
+    d= {1: {"q": 3, 4: {"key" : 'a'}}}
     
+    With keyword arg use_list=True, will rather assume that stored values are lists, 
+    and so will append VALUE :
+    
+    >>> e=dict()
+    >>> feed_dic(e,18,1,3,use_list=True)
+    >>> feed_dic(e,19,1,3,use_list=True)
+    >>> print "e=",e
+    e= {1: {3: [18, 19]}}
+    
+    With keyword arg use_count=True, will rather increment the dic value with VALUE 
+    (starting from 0) :
+    
+    >>> e=dict()
+    >>> feed_dic(e,2,"qq",3,use_count=True)
+    >>> feed_dic(e,100,"qq",3,use_count=True)
+    >>> print "e=",e
+    e= {"qq": {3: 102}}
+
     """
     if len(keys)==0 :
         raise ValueError("Must provide at least one key")
+    use_list  = kwargs.get('use_list' ,False)
+    use_count = kwargs.get('use_count',0)
+            
     d=dic
     level=0
     for k in keys[:-1] :
@@ -60,7 +83,43 @@ def feed_dic(dic,value,*keys):
         d=d[k]
         if type(d) != type(dict()) :
             raise ValueError("There is already a non-dict value (%s) for key %s at level %d"%(`d`,k,level))
-    d[keys[-1]]=value
+    if use_list or use_count :
+        if keys[-1] in d :
+            leaf=d[keys[-1]]
+            if use_list  :
+                if type(leaf) != list :
+                    raise ValueError("Cannot append %s at leaf level in list mode, value there is not a list : %s"%(value,leaf))
+                else :
+                    leaf.append(value)
+            elif use_count :
+                if type(leaf) != int :
+                    raise ValueError("Cannot increment at leaf level in count mode, value there is not an int %s"%(leaf))
+                else :
+                    d[keys[-1]] += value
+        else :
+            if use_list :
+                d[keys[-1]] = [ value ]
+            elif use_count :
+                if type(value) != int :
+                    raise ValueError("Cannot init count at leaf level in count mode, with a non-int value %s"%(value))
+                else :
+                    d[keys[-1]] = value
+    else:
+        d[keys[-1]]=value
+
+
+def amail(text,subject="The subject",to=["senesi@posteo.net"], sender="job_on_ciclad@anymail.fr"):
+    import smtplib
+    from email.mime.text import MIMEText
+    #
+    msg=MIMEText(text)
+    msg["Subject"]=subject
+    msg["From"]=sender
+    msg["To"]=str(to)
+    #
+    S=smtplib.SMTP()
+    S.connect()
+    S.sendmail(sender,to,msg.as_string())
 
 
 def choose_regrid_option(variable,table,model,grid):
