@@ -12,3 +12,9 @@ last.out
 doc/build/*
 notebooks/figures
 /notebooks/prod
+/old/
+*/old
+/select_data_versions/published_ok.json
+/select_data_versions/published_nok.json
+select_data_versions/timestamps
+select_data_versions/*json
