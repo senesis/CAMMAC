@@ -106,7 +106,9 @@ begin
 
    ; Define y values range for each plot 
    if ( .not.(isvar("yminmax"))) 
-     yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-45,30/),(/-70,160/) /)
+     ;yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-45,30/),(/-70,160/) /)
+     ; Euphrates en 5
+     yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-90,60/),(/-70,160/) /)
    end if
 
    ; Define colors for scenarios according to AR6 guidelines
