@@ -19,14 +19,17 @@ variables:
   - [ mrro , Lmon, std ]
 
 do_test    : False
-do_compute : True
+do_compute : False
 
 do_plot : True
 #plot_basins : [ Amazon , Yangtze, Lena , Mississippi, Euphrates, Niger ] 
 #plot_basins : [ Amazon , Yangtze, Euphrates  ] 
+#plot_basins : [ Indus, Nile, Parana, Amu-Darya, Mackenzie, "Lake Eyre" ]
 
-plot_basins : [ Indus, Nile, Parana, Amu-Darya, Mackenzie, "Lake Eyre" ]
+plot_basins : [ Mississippi, Danube, Lena, Amazon, Euphrates, Yangtze, Parana, Niger, Indus ]
+
 version : 6more
+plot_version : 9_basins
 
 EOF
 

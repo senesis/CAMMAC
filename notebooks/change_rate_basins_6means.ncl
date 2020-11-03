@@ -1,6 +1,6 @@
 ; IPCC/AR6/WGI/Chapter 8 - Stéphane Sénési - sept 2019 - march 2021
 
-; Multi-plot for 1 variables integrated over six basins (two columns * three rows)
+; Multi-plot for 1 variables integrated over 6 or 9 basins (2/3 columns * 3 rows)
 ; Each plot shows, for three scenarios (ssp), the dependency of the variable with variable 'tas'
 ; It is shown for an ensemble mean, and with an enveloppe defined by two stat values
 
@@ -46,7 +46,7 @@ begin
         
         transparency=0.1
         
-        panels=(/"a)","b)","c)","d)","e)","f)"/)
+        panels=(/"a)","b)","c)","d)","e)","f)","g)","h)","i)"/)
         
         res@xyMonoLineColor  = False
         res@xyMonoLineThickness = False
@@ -88,6 +88,7 @@ begin
         
       end
 
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
    in = addfile(input_file,"r")
    type="png"
@@ -104,11 +105,13 @@ begin
    
    plot = new(dimsizes(basins),graphic)                         ; create graphic array
 
+   nplot=dimsizes(basins)
+   
    ; Define y values range for each plot 
    if ( .not.(isvar("yminmax"))) 
      ;yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-45,30/),(/-70,160/) /)
      ; Euphrates en 5
-     yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-90,60/),(/-70,160/) /)
+     yminmax=(/(/-45,30/),(/-35,40/),(/-10.,65./),(/-30,45/),(/-90,60/),(/-70,160/) ,(/-30,45/),(/-90,60/),(/-70,160/) /)
    end if
 
    ; Define colors for scenarios according to AR6 guidelines
@@ -118,7 +121,7 @@ begin
    sspall=(/ 1.,1.,1.,1. /)
    colors=(/ssp585,ssp245,ssp126,sspall/)
    
-   do ib=0,dimsizes(basins)-1
+   do ib=0 , nplot - 1
      ; read relevant input time series
      timeseries=in->$var$(ssp|:,basin|ib,stat|:,period|:)
      tas=in->tas(ssp|:,period|:)
@@ -128,15 +131,19 @@ begin
    
    ; draw panel with white space added
    txres               = True                     ; text mods desired
-   txres@txFontHeightF = 0.013                     ; font smaller. default big
+   txres@txFontHeightF = 0.015                     ; font smaller. default big
    txres@txJust        = "BottomCenter"
-   gsn_text_ndc(wks,xtitle,0.5,0.02,txres)
+   gsn_text_ndc(wks,xtitle,0.5,0.01,txres)
    
    tyres =True
-   tyres@txFontHeightF         = 0.013
+   tyres@txFontHeightF         = 0.015
    tyres@txAngleF              = 90
    tyres@txJust                = "TopCenter"
-   gsn_text_ndc(wks, ytitle, 0.15,0.5,tyres)
+   if nplot .le. 6 
+     gsn_text_ndc(wks, ytitle, 0.15,0.5,tyres)
+   else
+     gsn_text_ndc(wks, ytitle, 0.01,0.5,tyres)
+   end if
    
    
 ;***********************************************
@@ -145,7 +152,7 @@ begin
    
    lgres                    = True
    
-   lgres@vpWidthF           = 0.12                   ; width of legend (NDC)
+   lgres@vpWidthF           = 0.2                   ; width of legend (NDC)
    lgres@vpHeightF          = 0.05                   ; height of legend (NDC)
    
    lgres@lgTitleString      = ""
@@ -173,16 +180,24 @@ begin
 ; Draw the legend, indicating the number of items, a label for each
 ; item, and the X, Y position of the legend in NDC coordinates.
 ;
-   gsn_legend_ndc(wks,3,experiments_labels,0.235,0.732,lgres)
+   if nplot .le. 6 
+     gsn_legend_ndc(wks,3,experiments_labels,0.235,0.732,lgres)
+   else
+     gsn_legend_ndc(wks,3,experiments_labels,0.42,0.91,lgres)
+   end if
    
    res = True
    res@gsnPanelMainString=title
-   res@gsnPanelMainFontHeightF=0.018
+   res@gsnPanelMainFontHeightF=0.020
    res@gsnPanelBottom=0.05
    res@gsnPanelTop=0.95
    ;resP@gsnPanelYWhiteSpacePercent = 2
    ;resP@gsnPanelXWhiteSpacePercent = 2
-   gsn_panel(wks,plot,(/3,2/),res)
+   if nplot .le. 6 
+     gsn_panel(wks,plot,(/3,2/),res)
+   else
+     gsn_panel(wks,plot,(/3,3/),res)
+   end if
 
    print("OK")
 end

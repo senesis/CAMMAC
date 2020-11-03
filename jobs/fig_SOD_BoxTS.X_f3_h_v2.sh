@@ -13,9 +13,10 @@ cd $wdir
 # Create input parameters file 
 cat <<EOF >fig.yaml
 
-version         : land_ann_ssp5
+#version         : land_ann_ssp5
+version         : tropics_ann_ssp5
 hybrid_seasons  : 
-  land_annual : [  [ land , ANN ] ]
+  tropics_annual : [  [ tropics , ANN ] ]  #land_annual : [  [ land , ANN ] ]
 scenarios       : [ ssp585 ]
 excluded_models : 
   mrro : [ CAMS-CSM1-0 ]  # outlier
