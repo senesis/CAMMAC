@@ -52,11 +52,14 @@ def feed_dic(dic,value,*keys,**kwargs):
     and so will append VALUE :
     
     >>> e=dict()
-    >>> feed_dic(e,18,1,3,use_list=True)
-    >>> feed_dic(e,19,1,3,use_list=True)
+    >>> feed_dic(e,18,key1,key2,use_list=True)
+    >>> feed_dic(e,19,key1,key2,use_list=True)
     >>> print "e=",e
-    e= {1: {3: [18, 19]}}
+    e= {key1: {key2: [18, 19]}}
     
+    With keyword arg extend_list=True, will also assume that stored values are lists, 
+    and that VALUE is a list, and concatenate it with value in dic
+
     With keyword arg use_count=True, will rather increment the dic value with VALUE 
     (starting from 0) :
     
@@ -69,9 +72,17 @@ def feed_dic(dic,value,*keys,**kwargs):
     """
     if len(keys)==0 :
         raise ValueError("Must provide at least one key")
-    use_list  = kwargs.get('use_list' ,False)
-    use_count = kwargs.get('use_count',0)
-            
+    for kw in kwargs :
+        if kw not in [ "use_list","use_count","extend_list" ]:
+            raise ValueError("Unknown keyword argument %s"%kw)
+    #
+    use_list     = kwargs.get('use_list'    ,False)
+    extend_list  = kwargs.get('extend_list' ,False)
+    use_count    = kwargs.get('use_count'   ,0)
+    #        
+    if extend_list and type(value) != list :
+        raise ValueError("Cannot extend at leaf level in list mode with a non-list value : %s"%(str(value)))
+    #
     d=dic
     level=0
     for k in keys[:-1] :
@@ -83,14 +94,20 @@ def feed_dic(dic,value,*keys,**kwargs):
         d=d[k]
         if type(d) != type(dict()) :
             raise ValueError("There is already a non-dict value (%s) for key %s at level %d"%(`d`,k,level))
-    if use_list or use_count :
+    #
+    if use_list or use_count or extend_list :
         if keys[-1] in d :
             leaf=d[keys[-1]]
-            if use_list  :
+            if use_list :
                 if type(leaf) != list :
                     raise ValueError("Cannot append %s at leaf level in list mode, value there is not a list : %s"%(value,leaf))
                 else :
                     leaf.append(value)
+            elif extend_list :
+                if type(leaf) != list :
+                    raise ValueError("Cannot expent %s at leaf level in list mode, value there is not a list : %s"%(value,leaf))
+                else :
+                    leaf.extend(value)
             elif use_count :
                 if type(leaf) != int :
                     raise ValueError("Cannot increment at leaf level in count mode, value there is not an int %s"%(leaf))
@@ -99,6 +116,8 @@ def feed_dic(dic,value,*keys,**kwargs):
         else :
             if use_list :
                 d[keys[-1]] = [ value ]
+            elif extend_list :
+                d[keys[-1]] = value
             elif use_count :
                 if type(value) != int :
                     raise ValueError("Cannot init count at leaf level in count mode, with a non-int value %s"%(value))

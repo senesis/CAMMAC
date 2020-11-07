@@ -148,9 +148,9 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
 def global_change(variable,table,experiment,period,ref_experiment,ref_period,
                   models,data_versions,filter_length=21) :
     """
-    Returns a CliMAF ensemble of 1D fields representing the global change for a 
+    Returns a CliMAF ensemble of 1D-vectors representing the global change for a 
     VARIABLE along a PERIOD of EXPERIMENT vs. a REF_PERIOD in another  REF_EXPERIMENT, 
-    for a list of MODELS
+    for a list of pairs (model,realization) (arg MODELS)
 
     The values are first yearly averaged and filtered on FILTER_LENGTH years
 
@@ -167,7 +167,8 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
 
     Tuned for CMIP6 only (yet). Use variable 'tas' in table 'Amon'
 
-    Assumes that realization indices and grids are consistent among experiments for provided list of models 
+    Assumes that realization indices and grids are consistent across experiments for each model in the 
+    provided list 
     """
     #
     GSAT=cens()
@@ -189,7 +190,7 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
         ref_tasmean=ccdo(ds(**ref),operator="timmean -fldmean")
         cfile(ref_tasmean)
         ref=cvalue(ref_tasmean)
-        print "GTAS = %g"%ref
+        #print "GTAS = %g"%ref
         #
         GSAT[model]=ccdo_fast(filtered_tasmean,operator="subc,%g"%ref)
     #
