@@ -29,10 +29,12 @@ excluded_models     : [ CAMS-CSM1-0 ]
 only_warmer_CI      : True  
 show_variability_CI : True
 show_mean_CI        : True
+show_tas_CI         : False
 
-#variables   : [  [pr,mean],  [mrro,mean], [pr,std], [mrro,std], [prw,mean]]
-variables   : [  [pr,mean],  [pr,std],  [prw,mean]]
+variables   : [  [pr,mean],  [mrro,mean], [pr,std], [mrro,std], [prw,mean]]
+#variables   : [  [pr,mean],  [pr,std],  [prw,mean]]
 xy_ranges   : [ 1.5, 5.8, -10.0, 60.0 ]
+
 yaxis_title : "% change over tropical land"
 
 EOF
