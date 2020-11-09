@@ -1,4 +1,4 @@
-from __future__  import division
+from __future__  import division 
 """
 
 CAMMAC ancillary functions for :
