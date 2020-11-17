@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# Setting up the environment on Ciclad for using CliMAF, IPython NoteBooks
-# and colormaps used in CAMMAClib. Environment variable CAMMAC must be set to the CAMMAC location
+# Setting up CAMMAC environment on Ciclad for using CliMAF, IPython NoteBooks
+# and colormaps used in CAMMAClib.
+
+# Environment variable CAMMAC must be set to the CAMMAC location
 # It allows to reach some Ncl colormaps
 
-module load ncl/6.6.2 cdo/1.9 netcdf4/4.3.3.1-gfortran TeX-live
+module load ncl/6.6.2 cdo/1.9 netcdf4/4.3.3.1-gfortran 
 #
-#conda_env=/thredds/ipsl/jservon/miniconda
 conda_env=/modfs/modtools/miniconda2
 CLIMAF=/home/ssenesi/climaf_installs/climaf_running
-#CLIMAF=/home/ssenesi/climaf_installs/climaf_V2.0.0
 #
-#export PATH=${conda_env}/envs/analyse_env_2.7/bin:${conda_env}/bin:$CLIMAF/bin:$PATH 
 export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$CLIMAF/bin:$PATH 
 export LD_LIBRARY_PATH=${conda_env}/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$CLIMAF:$PYTHONPATH
@@ -23,9 +22,6 @@ if [[ $HOSTNAME == ciclad*  ]]
 fi
 export TMPDIR=$CLIMAF_CACHE
 #
-# Speed-up Climaf setup (at the expense of not identifying the version of external tools)
-#export CLIMAF_CHECK_DEPENDENCIES=no   #no more possible since CliMAF V2
-
 # -- For conversion of Notebooks to PDF
 module load TeX-live
 

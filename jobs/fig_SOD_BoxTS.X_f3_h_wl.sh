@@ -18,13 +18,13 @@ do_test         : False
 hybrid_seasons  : 
   tropics_annual : [  [ tropics , ANN ] ]  
 scenarios       : [ ssp126, ssp245, ssp585 ]
-excluded_models : 
-  mrro : [ CAMS-CSM1-0 ]  # outlier
+excluded_models : {}
+#  mrro : [ CAMS-CSM1-0 ]  # outlier
 
-max_warming        : 6. # °C
-min_warming        : 2.
+max_warming        : 5. # °C
+min_warming        : 1.5
 warming_step       : 0.25
-proj_period        : 2015-2099 # period investigated for the warming
+proj_period        : 2000-2099 # period investigated for the warming
 window_half_size   : 10  # (years) half-size of temperature running mean 
 
 EOF

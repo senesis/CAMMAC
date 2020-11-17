@@ -150,7 +150,8 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
     """
     Returns a CliMAF ensemble of 1D-vectors representing the global change for a 
     VARIABLE along a PERIOD of EXPERIMENT vs. a REF_PERIOD in another  REF_EXPERIMENT, 
-    for a list of pairs (model,realization) (arg MODELS)
+    for a list of pairs (model,realization) (arg MODELS). The period can begin during 
+    ref_experiment (but ref_experiment must end at experiements's begin)
 
     The values are first yearly averaged and filtered on FILTER_LENGTH years
 
@@ -174,13 +175,15 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
     GSAT=cens()
     #
     for model,realization in models :
-        grid,version,_=data_versions[experiment][variable][table][model][realization]
+        grid,ref_version,_= data_versions[ref_experiment][variable][table][model][realization]
+        grid,version,_    = data_versions[experiment]    [variable][table][model][realization]
         print "Global_change - processing %20s %s %s"%(model,realization,version),
-        dic=dict(project="CMIP6", experiment=experiment, model=model, 
+        dic=dict(project="CMIP6_extent",
+                 experiment=ref_experiment, extent_experiment=experiment,
+                 model=model, 
                  institute=institute_for_model(model), period=period,
                  variable=variable, table=table_for_var_and_experiment(variable,experiment),
-                 mip=mip_for_experiment(experiment),
-                 realization=realization, version=version, grid=grid)
+                 mip="*", realization=realization, version=ref_version,extent_version=version,grid=grid)
         filtered_tasmean=ccdo(ds(**dic),operator="runmean,%d -yearmean -fldmean"%filter_length)
         #
         _,version,_=data_versions[ref_experiment][variable][table][model][realization]

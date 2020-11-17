@@ -71,7 +71,6 @@ echo "Execution flow will show in $here/${output}_<jobid>.ipynb"
 
 
 
-
 exit
 
 # Example of Yaml-syntax for a parameter file content
