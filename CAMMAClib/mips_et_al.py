@@ -39,6 +39,8 @@ def models_for_experiments(dic,variable,table,experiments,excluded_models=[],inc
     dic[experiment][variable][table][model][realization] = (grid,anything,anything) 
     """
 
+    if included_models=="None":
+        included_models=None        
     
     # Store available realizations per model and exp
     variants=dict()
@@ -60,6 +62,9 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
     Same as models_for_experiments() but for a list of (variable,table) pairs
     """
 
+    if included_models=="None":
+        included_models=None        
+    
     # Store available realizations per model and exp which have data for all variables
     # We use first variable,table pair as pivot
     variable,table=variable_table_pairs[0]
@@ -136,8 +141,11 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                                 if len(r1i1p1s) > 0 :
                                     if len(r1i1p1s) == 1  :
                                         chosen_variant=r1i1p1s[0]
-                                    else: 
-                                        raise ValueError("Should handle preference among forcing index for %s %s %s"%\
+                                    else:
+                                        if "r1i1p1f1" in r1i1p1s :
+                                            chosen_variant="r1i1p1f1"
+                                        else: 
+                                            raise ValueError("Should handle preference among forcing index for %s %s %s"%\
                                                         (experiments,model,`r1i1p1s`))
                 if chosen_variant is None :
                     # a prefered variant was not found ; keep any variant
@@ -268,6 +276,7 @@ models_data = {
     "EC-Earth3-LR"  : ("CMIP6","EC-Earth-Consortium",None) , # pas de pr pour historical (a verifier)
     "EC-Earth3-Veg" : ("CMIP6","EC-Earth-Consortium",1850) ,
     "EC-Earth3-Veg-LR":("CMIP6","EC-Earth-Consortium",None) ,
+    "EC-Earth3-AerChem":("CMIP6","EC-Earth-Consortium",None) ,
     "FGOALS-f3-L"   : ("CMIP6","CAS"		  , 600) , 
     "FGOALS-g3"     : ("CMIP6","CAS"		  , 200) , 
     "FIO-ESM-2-0"   : ("CMIP6","FIO-QLNM"	  ,301) ,

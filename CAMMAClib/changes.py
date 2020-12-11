@@ -323,8 +323,8 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 if print_statistics : print "Variabilities :",
                 for model,realization in control_models :
                     variability=variability_field(project,model,realization,
-                            variable, season,derivation_label, standardized,
-                            variab_sampling_args,common_grid,table,
+                            variable, season, derivation_label, standardized,
+                            variab_sampling_args, common_grid,table,
                             data_versions,deep)
                     feed_dic(dic,variability,experiment,season,"variability",derivation_label,model)
                     if print_statistics :
@@ -381,7 +381,8 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                     avg=ensavg
                 agreef=agreement_fraction_on_sign(cens(dic[experiment][season][agree_field][derivation_label]))
                 feed(agreef,"agreement_fraction_on_sign")
-                medvar=ccdo_ens(cens(dic[experiment][season]["variability"][derivation_label]),operator='enspctl,50')
+                medvar=ccdo_ens(cens(dic[experiment][season]["variability"][derivation_label]),
+                                operator='enspctl,50')
                 feed(medvar,"median_variability")
                 #
                 s,h=stippling_hatching_masks_AR5(avg,medvar,agreef)
@@ -389,8 +390,15 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 feed(h,"hatching")
                 #
                 # Agreement on low change wrt OWN internal variability
-                agree_low=agreement_fraction_on_lower(cens(dic[experiment][season]["nchange"][derivation_label]),low_change_agree_threshold)
-                feed(agree_low,"agree_low")
+                if "nchange" in dic[experiment][season] :
+                    agree_low=agreement_fraction_on_lower(
+                        cens(dic[experiment][season]["nchange"][derivation_label]),
+                        low_change_agree_threshold)
+                    feed(agree_low,"agree_low")
+                else:
+                    print "No common model for ",variable,seasons,experiments
+                    print "models: ",models
+                    print "control_models:",control_models
             #
             print
     return aggregates, dic
@@ -673,7 +681,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
                                      models_dict, data_versions, derivation_label,
                                      relative,standardized,print_statistics,
                                      ref_experiment, variab_sampling_args,
-                                     common_grid,table,threshold)
+                                     common_grid,table,threshold,deep)
         #
         #end_time = datetime.now()
         #duration = end_time - start_time
@@ -708,6 +716,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     cfile(plot1,filename)
     print "Figure available as ",filename
     return filename,plot1,dic,variab_models,changes_models
+    #return "",plot1,dic,variab_models,changes_models
 
 def dump_aggregates(aggregates,variable,derive,ref_period,proj_period,cache_dir,tag,deep=None) :
     """

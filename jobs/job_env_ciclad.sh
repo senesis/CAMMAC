@@ -11,9 +11,10 @@ module load ncl/6.6.2 cdo/1.9 netcdf4/4.3.3.1-gfortran
 conda_env=/modfs/modtools/miniconda2
 CLIMAF=/home/ssenesi/climaf_installs/climaf_running
 #
-export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$CLIMAF/bin:$PATH 
+#export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$CLIMAF/bin:$PATH 
+export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$PATH 
 export LD_LIBRARY_PATH=${conda_env}/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$CLIMAF:$PYTHONPATH
+#export PYTHONPATH=$CLIMAF:$PYTHONPATH
 #
 # Set CliMAF cache
 if [[ $HOSTNAME == ciclad*  ]]  
