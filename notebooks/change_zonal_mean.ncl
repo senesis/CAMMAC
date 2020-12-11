@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Multi-plot of zonal means
+; Multi-plot of zonal means of P, P-E and evspsbl
 ; AR6 - WGI - Chapter8 - Stéphane Sénési - 09/2019-03/2021
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -11,7 +11,7 @@
 ;      variab95=varname+"_variab95"
 ;      mean=varname+"_mean"
 ;      land_mean=varname+"_land_mean"
-; with varname == either "pr" or "P-E"
+; with varname == either "pr" or "P-E" or "evspsbl"
 
 ; plot mean as a solid colored line and land_mean as a dashed one
 
@@ -157,7 +157,8 @@ begin
   ;res@lgMonoItemType = True
   ;res@xyLineThicknessF   = 3.0
 
-  fact=24.*3600. ; convert kg m**-2 s-1 to mm day-1
+  if (.not. isvar("fact")) then fact=1. end if
+  ;fact=24.*3600. ; convert kg m**-2 s-1 to mm day-1
   ;
   do iy=1,ny
     do ix=1,nx
