@@ -640,7 +640,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models=models_for_experiments(data_versions,variable,table,
                                            ["piControl",ref_experiment,experiment],excluded_models,models)
         changes_models.sort()
-        variab_models=changes_models
+        variab_models=[ m for m in changes_models ]
     else:
         exps_list=[ref_experiment,experiment]
         if standardized :

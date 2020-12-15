@@ -21,3 +21,5 @@ select_data_versions/*json
 /notebooks/change_rate_basins_data.nc
 /select_data_versions/missing_datasets.txt
 notebooks/cache
+jobs/various_tests/*
+Untitled*
