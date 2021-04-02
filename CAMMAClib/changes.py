@@ -14,7 +14,10 @@ from climaf.api import *
 
 from variability import process_dataset, variability_AR5, agreement_fraction_on_sign, \
     agreement_fraction_on_lower, stippling_hatching_masks_AR5, \
+    lowchange_conflict_masks_AR6,\
     inter_annual_variability, control_inter_annual_variability
+
+from figures import AR6_change_figure
 
 from ancillary import feed_dic, choose_regrid_option
 
@@ -200,14 +203,15 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
     return GSAT
 
 
-def change_fields(variable,experiments,seasons,ref_period,projection_period,
+def change_fields(project,variable,experiments,seasons,ref_period,projection_period,
                   models_to_plot, data_versions, derivation_label=None,
                   relative=False, standardized=False, print_statistics=False,
                   ref_experiment="historical",
                   variab_sampling_args= {"house_keeping":True,"compute":True,"detrend":True,
                                          "shift":100,"nyears":20,"number":20},
                   common_grid=None,table=None,
-                  deep=None, threshold=None,low_change_agree_threshold=1.0) :
+                  deep=None, threshold=None,
+                  low_change_agree_threshold=1.645, sign_agree_threshold=0.9) :
     
     """Computes a series of change fields for one
     VARIABLE and a list of EXPERIMENTS, for period PROJECTION_PERIOD
@@ -246,11 +250,18 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
     the reference field below which the per-model relative changes are set to missing
 
     Arg LOW_CHANGE_AGREE_THRESHOLD provides the threshold for
-    computing the field of fractionnal agreement on a low change; it
-    is compared to the ratio of absolute value of change by internal
-    variability for each model separately for deciding for a low
-    change. The fraction of agreement is returned with key
-    "agree_low" (see below)
+    computing the field of fractional agreement on a low change; its
+    default value is the one set for AR6 hatching sheme; it is
+    compared for each model separately to the ratio of absolute value
+    of change by internal multi-decadal variability, for deciding for
+    a low change for that model. The fraction of agreement across
+    models is returned under key "agree_low" (see below), and mask
+    fields defined by AR6 hatching scheme are returned under key
+    "lowchange" (for zones without an agreed significant change) and "conflicts" 
+    (for zones with conflicting significant signals)
+
+    The fraction of sign agreement across models is returned under key
+    "agreement_fraction_on_sign" (see below)
 
     The variable is sought in CMIP6 table Amon or Lmon (depending on the 
     variable), except specified otherwise using arg TABLE (e.g. value 'day' is 
@@ -278,7 +289,10 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 
         * mean_change, mean_rchange, mean_schange, means_rchange
         * median_change, median_rchange, median_schange, 
-        * median_variability, agreement_fraction,  stippling, hatching, low_change_agreement_fraction
+        * median_variability, 
+        * (AR5 case) : stippling, hatching masks 
+        * (AR6 simple case) : agreement_fraction_on_sign,  
+        * (AR6 complex case) : agree_low, conflict,lowchange (TBD)
 
     - field=dic[experiment][season][key][derivation_label][model]
       where key has values : reference, projection, change, rchange, schange, nchange, variability
@@ -304,16 +318,17 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
         #
         if table is None :
             table=table_for_var_and_experiment(variable,experiment)
-        project=project_for_experiment(experiment)
+        #project=project_for_experiment(experiment)
         control_models,models=models_to_plot[experiment]
-        do_variability=variab_sampling_args != {} and variab_sampling_args is not None and len(control_models) > 0
+        do_variability= (variab_sampling_args != {} and variab_sampling_args is not None and \
+                        len(control_models) > 0 )
         #
         for season in seasons :
             if not print_statistics: print experiment,season,
             #
             #
             for model,realization in models :
-                change_fields_internal(dic,model,realization,variable,ref_period,
+                change_fields_internal(dic,project,model,realization,variable,ref_period,
                             projection_period,ref_experiment,experiment,season,
                             derivation_label, relative,standardized,print_statistics,
                             common_grid,table,data_versions,deep,variab_sampling_args,
@@ -369,18 +384,18 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                 csync()
                 print 
             #
+            if standardized :
+                agree_field="schange"
+                avg=smean
+            else :
+                agree_field="change"
+                avg=ensavg
+            agreef=agreement_fraction_on_sign(cens(dic[experiment][season][agree_field][derivation_label]))
+            feed(agreef,"agreement_fraction_on_sign")
             #
-            # Compute stippling and hatching fields for the figure 
+            # Compute stippling and hatching fields (a la AR5) for the figure 
             #
             if do_variability :
-                if standardized :
-                    agree_field="schange"
-                    avg=smean
-                else :
-                    agree_field="change"
-                    avg=ensavg
-                agreef=agreement_fraction_on_sign(cens(dic[experiment][season][agree_field][derivation_label]))
-                feed(agreef,"agreement_fraction_on_sign")
                 medvar=ccdo_ens(cens(dic[experiment][season]["variability"][derivation_label]),
                                 operator='enspctl,50')
                 feed(medvar,"median_variability")
@@ -395,6 +410,11 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
                         cens(dic[experiment][season]["nchange"][derivation_label]),
                         low_change_agree_threshold)
                     feed(agree_low,"agree_low")
+                    (l , c) = lowchange_conflict_masks_AR6(\
+                                 agreef,agree_low,
+                                 fraction_on_sign=sign_agree_thresold)
+                    feed(l,"lowchange")
+                    feed(c,"conflict")
                 else:
                     print "No common model for ",variable,seasons,experiments
                     print "models: ",models
@@ -405,7 +425,7 @@ def change_fields(variable,experiments,seasons,ref_period,projection_period,
 
 
 
-def change_fields_internal(dic,model,realization,variable,ref_period,
+def change_fields_internal(dic,project,model,realization,variable,ref_period,
                            projection_period,ref_experiment,experiment,season,
                            derivation_label,relative,standardized,print_statistics,
                            common_grid,table,data_versions,deep,variab_sampling_args,
@@ -422,7 +442,7 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
     else :
         print model,
     #
-    project=project_for_experiment(experiment)
+    #project=project_for_experiment(experiment)
     grid,version,_=data_versions[ref_experiment][variable][table][model][realization]
     roption=choose_regrid_option(variable,table,model,grid)
     derivation=derivations[derivation_label]
@@ -441,17 +461,6 @@ def change_fields_internal(dic,model,realization,variable,ref_period,
     reference_remapped=regridn(reference,cdogrid=common_grid,**roption)
     feed("reference_remapped",reference_remapped)
     if relative  :
-        # if variable in ["pr","evspsbl", "P-E" ] and derivation_label not in ["dry","drain"] :
-        #     zero_dot_1_mm_day=0.1/(24*3600) # in kg m2 s-1
-        #     zero_dot_zero1_mm_day=0.01/(24*3600) # in kg m2 s-1
-        #     epsilon=1.e-20
-        #     #
-        #     threshold=0.
-        #     threshold=zero_dot_zero1_mm_day
-        #     if variable=="evspsbl" :
-        #         thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-%f,%f"%(threshold,threshold))
-        #     else:
-        #         thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
         if threshold is not None :
             thresholded_reference=ccdo_fast(reference,operator="setrtomiss,-1.e+10,%f"%threshold)
         else :
@@ -512,11 +521,10 @@ def variability_field(project,model,realization,variable,season,
                            derivation_label,standardized,
                            variab_sampling_args,common_grid,table,
                            data_versions,deep,
-                           only_inter_annual=False
-):
+                           only_inter_annual=False):
     """
     Computes variability (either multi-decadal 'a la AR5' or inter_annual) for the
-    requested model, and regrid it to common grid (provided it is not None)
+    requested dataset, and regrid it to common grid (provided it is not None)
 
     If only_inter_annual is True, returns the inter_annual version
 
@@ -558,7 +566,7 @@ def variability_field(project,model,realization,variable,season,
 
 def AR6_change_figure_with_caching(variable, experiment, season, 
                         data_versions_tag, data_versions_dir,
-                        models=None, excluded_models=[],
+                        project="CMIP6",models=None, excluded_models=[],
                         variability_models=None, variability_excluded_models=[],
                         ref_period="1995-2014", proj_period=None,
                         ref_experiment="historical",
@@ -571,15 +579,17 @@ def AR6_change_figure_with_caching(variable, experiment, season,
                         variab_sampling_args={"house_keeping":True, "compute":True,"detrend":True, "shift":100,"nyears":20,"number":20},
                         cache_dir="./aggregates",
                         drop=False, same_models_for_variability_and_changes=False,
-                        threshold=None, stippling="stippling"
-                        ) :
+                        threshold=None, scheme="AR5", low_change_agree_threshold=1.645,
+                        change_sign_agree_threshold=0.9) :
+
     """This is a wrapper around two functions :
 
      - 'change_fields', wich computes various fields related to the change of some variable between a 
        projection and an reference period in refrence experiment (either a plain or a derived variable)
 
-     - 'AR6_change_figure', which tunes a plot of such change fields (including stippling and hatching for 
-       representing inter-model agreement and significance of the change re. variability in control runs)
+     - 'AR6_change_figure', which tunes a plot of such change fields (including stippling and hatching 
+       or crosses and backslashes for representing inter-model agreement and significance of the 
+       change re. variability in control runs)
 
     See the documentation for these two functions (in the same module) for most arguments.
 
@@ -601,13 +611,13 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     computing variability with arguments VARIABILITY_MODElS and VARIABILITY_EXCLUDED_MODElS in a way 
     similar to the models used for computing changes
 
-    Argument STIPPLING allows to choose if the stippling is applied to :
+    Argument SCHEME allows to choose between AR5 and AR6 schemes for hatching/stippling ( with 
+    value "AR5") or backslashes/crosses (with value "AR6" for "comprehensive approach"), or 
+    slashes (with value "AR6S" for "simple approach") :
 
-      - areas with mean change less than one standard deviation of internal variability (default, 
-        stippling="stippling") or 
+    Argument low_change_agree_threshold is documented with function change_fields
+    Argument change_sign_agree_threshold is used with schemes AR6 and  AR6S 
 
-      - areas where 90% of models agree that the change is less than 2
-        standard deviation of their own internal variability (if stippling="agree_low")
 
     Argument DEEP, if set to True, will force CliMAF to restart all computations from scratch rather than 
     using its (own) cached values. This is done whatever the value of READ.
@@ -633,6 +643,14 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     standardized=False
     if "schange" in field_type :
         standardized=True
+    if type(threshold) is str :
+        # This can happen when using papermill upstream 
+        threshold=eval(threshold)
+    #
+    if scheme == "AR6S" :
+        do_variability=False
+        variab_sampling_args=None
+        variab_models=[]
     #
     data_versions=read_versions_dictionnary(data_versions_tag, data_versions_dir)
     #
@@ -640,7 +658,8 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models=models_for_experiments(data_versions,variable,table,
                                            ["piControl",ref_experiment,experiment],excluded_models,models)
         changes_models.sort()
-        variab_models=[ m for m in changes_models ]
+        if do_variability :
+            variab_models=[ m for m in changes_models ]
     else:
         exps_list=[ref_experiment,experiment]
         if standardized :
@@ -649,12 +668,15 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         changes_models=models_for_experiments(data_versions,variable,table,
                                            exps_list,excluded_models,models)
         changes_models.sort()
-        variab_models=models_for_experiments(data_versions,variable,table,["piControl"],
+        if do_variability :
+            variab_models=models_for_experiments(data_versions,variable,table,["piControl"],
                                              variability_excluded_models,variability_models)
-        variab_models.sort()
+            variab_models.sort()
     #
     models_dict={experiment:(variab_models,changes_models)}
-    
+
+    #
+    # Create a hash tag for cached result files
     models_reals_string=reduce(lambda x,y : "%s_%s"%(x,y), [ "%s%s"%(m,r) for m,r in changes_models])
     tag=data_versions_tag + "_" + hashlib.sha1(models_reals_string).hexdigest()[0:8]
     #
@@ -677,11 +699,12 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     if len(aggregates)== 0 :
         #start_time = datetime.now()
         #print variable,derivations[derivation_label]
-        aggregates,dic=change_fields(variable, experiments,seasons,ref_period,proj_period,
+        aggregates,dic=change_fields(project,variable, experiments,seasons,ref_period,proj_period,
                                      models_dict, data_versions, derivation_label,
                                      relative,standardized,print_statistics,
                                      ref_experiment, variab_sampling_args,
-                                     common_grid,table,threshold,deep)
+                                     common_grid,table,deep,threshold,low_change_agree_threshold,
+                                     change_sign_agree_threshold)
         #
         #end_time = datetime.now()
         #duration = end_time - start_time
@@ -689,31 +712,57 @@ def AR6_change_figure_with_caching(variable, experiment, season,
         if write and (not read or read_failed or deep) :
             dump_aggregates(aggregates,variable,derivation_label,ref_period,proj_period,cache_dir,tag,deep)
     #
-    d=aggregates[variable][experiment][season]
-    field = d[field_type] [derivation_label]
-    if "hatching" in d :
-        hatching  = d["hatching"] [derivation_label]
-        stippling = d[stippling][derivation_label]
-    else :
-        stippling,hatching="",""
-    #
     relative = ( "_rchange" in field_type )
     if title is None :
         title=field_type+" "+variable+" "+derivation_label+" "+season+" "+experiment
-    plot1=AR6_change_figure(variable,derivation_label,field,stippling,hatching,
-                            relative,labelbar,True,title,custom_plot,len(changes_models),mask)
+    #
+    d=aggregates[variable][experiment][season]
+    field = d[field_type] [derivation_label]
+    #
+    if scheme == "AR5" :
+        if "hatching" in d :
+            hatching  = d["hatching"] [derivation_label]
+            stippling = d["stippling"][derivation_label]
+        else :
+            stippling,hatching="",""
+        #plot1=AR6_change_figure_old(variable,derivation_label,field,stippling,hatching,
+        #                    relative,labelbar,True,title,custom_plot,len(changes_models),mask)
+        plot1=AR6_change_figure(variable, derivation_label, field,
+                                mask1 = hatching, pattern1 = "hatching",
+                                mask2 = stippling, pattern2 = "stippling",
+                                relative = relative, labelbar = labelbar, title = title,
+                                custom_plot = custom_plot, number = len(changes_models), mask = mask)
+    elif scheme == "AR6" :
+        conflict = d["conflict"] [derivation_label]
+        lowchange = d["lowchange"] [derivation_label]
+        plot1=AR6_change_figure(variable, derivation_label, field,
+                                mask1 = conflict, pattern1 = "crosses",
+                                mask2 = lowchange, pattern2 = "backslashes",
+                                relative = relative, labelbar = labelbar, title = title,
+                                custom_plot = custom_plot, number = len(changes_models), mask = mask)
+    elif scheme == "AR6S" :
+        agreef = d["agreement_fraction_on_sign"] [derivation_label]
+        sign_mask=ccdo_fast(agreef, operator="lec,%g"%change_sign_agree_threshold)
+        plot1=AR6_change_figure(variable, derivation_label, field,
+                                mask2 = sign_mask, pattern2 = "slashes",
+                                relative = relative, labelbar = labelbar, title = title,
+                                custom_plot = custom_plot, number = len(changes_models), mask = mask)
+    else :
+        raise ValueError("Illegal scheme value : %s"%scheme)
+    
     if drop :
         cdrop(plot1)
     #
     if outfile is None :
         if outdir is None :
             raise Error("Must provide either outdir or outfile")
-        if not os.path.exists(outdir) : os.makedirs(outdir)
+        if not os.path.exists(outdir) :
+            os.makedirs(outdir)
         filename="%s/fig_%s_%s_%s_%s_%s_%s_%s_%s.png"%(outdir,variable,derivation_label,experiment,
                                                     season,field_type,ref_period,proj_period,tag)
     else:
         filename=outfile
-    cfile(plot1,filename)
+    cfile(plot1,filename,ln=True)
     print "Figure available as ",filename
     return filename,plot1,dic,variab_models,changes_models
     #return "",plot1,dic,variab_models,changes_models
@@ -751,137 +800,6 @@ def read_aggregates(ref_period,proj_period,tag,cache_dir) :
             cdrop(dataset)
             feed_dic(d,dataset,variable,exp,season,field,derive)
     return d
-
-
-def AR6_change_figure(variable, derivation_label, field, stippling="", hatching="",
-                      relative=True, labelbar="True", shade=True,
-                      title=None, custom_plot={}, number=None, mask=None) :
-    """
-
-    Returns a CliMAF plot object showing a 2d FIELD, with
-    superimposition of stippling (resp. hatching) where field
-    STIPPLING (resp.HATCHING) is 'set' (actually where it exceeds value 0.9)
-
-    Plot characteristics comply with AR6/WGI TSU guidelines re. colormaps, projection, ...
-    (except maybe if changed through arg CUSTOM_PLOT, see below)
-
-    Toggle LABELBAR drives the presence of a labelbar in the plot. Its type is 
-    string => value must be "True" or "False"
-
-    The provided TITLE is plotted too. If a NUMBER is provided, it will
-    be plotted in upper righ corner
-
-    VARIABLE, DERIVATION_LABEL, and logical toggle RELATIVE are used in order 
-    to choose a colormap and sensible data intervals for a change of the variable
-    (arg RELATIVE indicating if FIELD is for a relative change)
-
-    However, this can be superseded by providing through CUSTOM_PLOT
-    argument a dict of arguments for CliMAF function plot(), as e.g.
-
-    >>> custom_plot={"color":"AR6_Precip_12","min":-2, "max":2,"delta":0.4 ,focus:"land"}
-
-    For the time being, the most used value for DERIVATION_LABEL is 'plain',
-    and the only other known cases are 'dry' (which stands for: the number of dry
-    days per year) and 'drain' (daily rain depth for rainy days)
-
-    """
-    plot_args=dict( proj="Robinson", mpCenterLonF=2.0, gsnLeftString="", vcb=False)
-    if hatching != "" and shade :
-        plot_args.update(shading_options="gsnShadeHigh=3|gsnAddCyclic=True",
-                         shade_above=0.9) 
-    if stippling != "" and shade :
-         # Stippling for 2nd mask
-        plot_args.update( shade2_options="gsnShadeHigh=17|gsnShadeFillScaleF=1|gsnShadeFillDotSizeF=0.004|gsnAddCyclic=True", 
-                          shade2_below=-0.1, shade2_above=0.9)
-    options_format="lbLabelBarOn=%s|lbBoxEndCapStyle=TriangleBothEnds|lbLabelFont=helvetica|" +\
-        "lbTitleOn=True|lbTitleString='%s'|lbTitleFont=helvetica|lbTitlePosition=Bottom|"+\
-        "lbLabelFontHeightF=0.015|cnMissingValFillColor=grey|cnInfoLabelOn=False|"+\
-        "gsnRightStringFontHeightF=0.018|cnFillMode=CellFill|"
-    #
-    def colormap(variable) :
-        if   variable in ["pr","pr_drain","pr_iav","P-E","mrro"] : return {"color":"AR6_Precip_12s" }
-        elif variable in ["pr_dry"]                     : return {"color":"AR6_Evap_12s" }
-        elif variable in ["pr_seasonality"]             : return {}
-        elif variable in ["evspsbl"]                    : return {"color":"AR6_Temp_12s" }
-        elif variable in ["mrsos","mrso"]               : return {"color":"AR6_Precip_12s" }
-        elif variable in ["sos"]                        : return {"color":"AR6_Salinity_12s" }
-        else : return {}
-    #
-    def unit_string(variable) :
-        if variable in ["pr","P-E", "evspsbl"] : return "mm/d"
-        elif variable == "pr_drain"            : return "mm"
-        elif variable == "pr_seasonality"      : return "-"
-        elif variable == "pr_dry"              : return "day"
-        elif variable in ["mrso","mrsos"]      : return "kg/m**2"
-        elif variable in ["mrro"]              : return "kg/m**2/d"
-        elif variable == "sos"                 : return "psu"
-        else                                   : return "?"
-    #
-    def scale(variable) :
-        if variable in ["pr","P-E","mrro","evspsbl"] : return {"scale":24.*3600 }
-        else : return {}
-
-    def minmax(variable) :
-        if   variable == "pr"     : return { "min":-2, "max":2,"delta":0.4}
-        elif variable == "pr_dry" : return { "colors":"-32 -16 -8 -4 -2 0 2 4 8 16 32"}
-        elif variable == "pr_drain":return { "colors":"-2 -1 -0.5 -0.2 -0.1 0 0.1 0.2 0.5 1 2"}
-        elif variable == "pr_seasonality": return { "min":0.2, "max":1.5, "delta":0.1 }
-        elif variable == "P-E"    : return { "min":-2, "max":2,"delta":0.4}
-        elif variable == "evspsbl": return { "min":-1, "max":1,"delta":0.2},
-        elif variable == "mrsos"  : return { "colors":"-5 -2 -1 -0.5 -0.25 0.25 0.5 1 2 5"}
-        elif variable == "mrro"   : return { "min":-0.5, "max":0.5,"delta":0.1}
-        else : return {}
-        
-    def relative_minmax(variable) :
-        if   variable == "mrso" :    return dict(colors="-5 -2 -1 -0.5 -0.25 0 0.25 0.5 1 2 5")
-        elif variable == "sos" :     return dict(colors=" -4. -3. -2. -1. -0.5 0. 0.5 1. 2. 3. 4. ")        
-        elif variable == "evspsbl" : return dict(colors=" -100. -50. -25. -10. -5 0. 5 10. 25. 50. 100. ")        
-        else                       : return dict(colors=" -50. -40. -30. -20. -10. 0. 10. 20. 30. 40. 50.")  
-    #
-    def apply_mask(field,mask_field):
-        """ 
-        Assumes that mask field has non-zero non-missing values on interesting places (to keep), 
-        and zero or missing on places to mask 
-        Result has input field value on interesting places, and missing value elsewhere
-        Assumes that grids for both fields are consistent
-        """
-        if type(mask_field) is str :
-            mask_field=fds(mask_field)
-        return ccdo2_flip(field,mask_field,operator="ifthen")
-
-    var2=variable
-    if derivation_label != 'plain' :
-        var2=variable+"_"+derivation_label
-    if relative :
-        plot_args.update(**relative_minmax(var2))
-        plot_args.update(options=options_format%(labelbar,"%"))
-    else:
-        #print var2,minmax(var2)
-        plot_args.update(**minmax(var2))
-        plot_args.update(**scale(var2))
-        ustring=custom_plot.get("units",unit_string(var2))
-        plot_args.update(options=options_format%(labelbar,ustring))
-    plot_args.update(**colormap(var2))
-    #
-    # Must combine 'options' defined above and those in custom_plot
-    custom_options=custom_plot.pop("options","")
-    plot_args["options"]=plot_args["options"]+custom_options
-    #
-    # Apply caller's custom options
-    plot_args.update(custom_plot)
-    #
-    if number is not None :
-        if type(number) is int : number_string="%d  "%number
-        else :                   number_string="%s  "%number
-        plot_args.update(gsnRightString=number_string)
-    #
-    if mask is not None :
-        field     = apply_mask(field,mask)
-        if stippling != "" : 
-            stippling = apply_mask(stippling,mask)
-        if hatching != "" : 
-            hatching  = apply_mask(hatching ,mask)
-    return plot(field,hatching,"","",stippling,title=title, **plot_args)
 
 
 

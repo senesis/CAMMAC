@@ -14,7 +14,7 @@ import json, os, os.path
 
 # A dictionnary of pretty labels for some acronyms
 prettier_label={
-    "ssp126":"SSP1-1.9","ssp126":"SSP1-2.6","ssp245":"SSP2-4.5","ssp585":"SSP5-8.5",
+    "ssp119":"SSP1-1.9","ssp126":"SSP1-2.6","ssp245":"SSP2-4.5","ssp370":"SSP3-7.0","ssp585":"SSP5-8.5",
     #
     "DJF":"DJF","JJA":"JJA","ann":"All seasons","ANN":"All seasons",
     #
@@ -148,80 +148,77 @@ def choose_regrid_option(variable,table,model,grid):
     The return value is a dict of arg/values for regridn
     """
     default = {"option" : "remapcon"}   
-    default = {}   
     if table != "Omon":
         return default
-    if model not in [ "CNRM-CM6-1", "CNRM-ESM2-1", "IPSL-CM6A-LR", "AWI-CM-1-1-MR" ,"BCC-CSM2-MR",
-                      "EC-Earth3", "EC-Earth3-Veg","MPI-ESM1-2-HR","NESM3"]:
+    elif model not in [ "CNRM-CM6-1", "CNRM-ESM2-1", "CNRM-CM6-1-HR", "IPSL-CM6A-LR", # Nemo Grid
+                        "EC-Earth3",  "EC-Earth3-LR" ,
+                        "EC-Earth3-CC", "EC-Earth3-AerChem",
+                        "EC-Earth3P",  "EC-Earth3P-HR",
+                        "EC-Earth3-Veg", "EC-Earth3-Veg-LR", 
+
+                        "MPI-ESM1-2-HR","MPI-ESM1-2-LR","MPI-ESM1-2-XR","MPI-ESM-1-2-HAM", #
+                        "NESM3",
+                        "BCC-ESM1", "BCC-CSM2-MR", "FGOALS-f3-L", "FGOALS-g3", # Source grid cell corner coordinates missing
+                        "AWI-CM-1-1-MR" ,
+                        "CMCC-CM2-SR5" ,# this one generates CDO error "ERROR: invalid cell"
+                        "HadGEM3-GC31-MM" , # ERROR: invalid cell
+                        "HadGEM3-GC31-LL" , # ERROR: invalid cell
+                        "IITM-ESM", # Source grid cell corner coordinates missing!
+    ]:
         return default
-    if grid[0:2] == "gr":
+    elif grid[0:2] == "gr":
         return default
-    return {"option" : "remapdis"}
+    else :
+        return {"option" : "remapdis"}
     
 
 
-def extract_labelbar(figure_file,labelbar_file) :
+def extract_labelbar(figure_file, labelbar_file, y_offset=630) :
     # Extract labelbar from figure_file using external process
-    os.system("convert -extract +0+740 %s -trim %s"%(figure_file,labelbar_file))
+    os.system("convert %s +repage -crop +0+%d -trim %s"%(figure_file,y_offset,labelbar_file))
 
 def concatenate_labelbars(lbfile1,lbfile2,lbfile) :
     # 
     os.system("convert -size 1650x100 xc:white %s -geometry 1100x100 -composite "%lbfile1 +
               " %s -geometry x100+550+0 -composite -trim %s"%(lbfile2,lbfile))
 
-
-def create_labelbar0(figure_file,out_file,missing=True,signif=True,captions_dir=None):
+    
+def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,
+                     captions_dir=None,width=2100,height=130,scheme="AR6",y_offset=630,ratio=4.):
 
     # Extract labelbar from figure_file 
-    extract_labelbar(figure_file,"tmp_labelbar.png")
+    extract_labelbar(figure_file1,"tmp_labelbar1.png",y_offset)
+    extract_labelbar(figure_file2,"tmp_labelbar2.png",y_offset)
     
     # Combine with legend for shadings
     if captions_dir is None :
         captions_dir=os.path.dirname(os.path.abspath( __file__ ))+"/captions/"
+    if scheme=="AR5" :
+        if missing : caption="caption_signif_missing.png"
+        else:        caption="caption_signif_centre.png"
+    elif scheme=="AR6" :
+        caption="AR6_hatching_legend.png"
+    elif scheme in [ "AR6S" , "KS13" ] :
+        caption="AR6S_hatching_legend.png"
+    else :
+        raise ValueError("Unknown hatching scheme %s"%scheme)
+    shading_caption=captions_dir+caption
 
-    if missing :
-        if signif :
-            caption="caption_signif_missing.png"
-        else: 
-            caption="caption_signif_missing.png"
-            #caption="caption_agree_missing.png"
+    # signif captions size is 314x175
+    # label bars size is 872x130 (for page_width=2450,page_height=3444)
+
+    if scheme != "AR6S" :
+        # Divide width in segments : 3+1+3
+        signif_width=width//7
+        lbwidth= 3*signif_width
+        margin=signif_width/6
     else:
-        if signif :
-            caption="caption_signif_centre.png"
-        else:
-            caption="caption_signif_centre.png"
-            #caption="caption_agree.png"
+        # Divide width in segments : 2+1+2
+        signif_width=int(float(width)/ratio)
+        lbwidth= int((width-signif_width)/2.)
+        margin=signif_width/10
+    signif_width = width - 2 * ( lbwidth + margin )
 
-    shading_caption=captions_dir+caption
-    os.system("rm -f %s "%(out_file))
-    # signif captions size is 314x175
-    # label bars size is 872x130 (for page_width=2450,page_height=3444)
-    os.system("convert "+\
-              "-size 1150x130 xc:white "+\
-              "\( tmp_labelbar.png -scale x130 \) -composite "+\
-              "\( %s -scale x130 -geometry +900+0 \) -composite -trim %s"%(shading_caption,out_file))
-    os.system("rm tmp_labelbar.png")
-
-def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,captions_dir=None,width=2100,height=130):
-
-    # Extract labelbar from figure_file 
-    extract_labelbar(figure_file1,"tmp_labelbar1.png")
-    extract_labelbar(figure_file2,"tmp_labelbar2.png")
-    
-    # Combine with legend for shadings
-    if captions_dir is None :
-        captions_dir=os.path.dirname(os.path.abspath( __file__ ))+"/captions/"
-    if missing : caption="caption_signif_missing.png"
-    else:        caption="caption_signif_centre.png"
-    shading_caption=captions_dir+caption
-
-    # signif captions size is 314x175
-    # label bars size is 872x130 (for page_width=2450,page_height=3444)
-
-    # Divide width in segments : 3+1+3
-    signif_width=width//7
-    lbwidth= 3*signif_width
-    margin=signif_width/6
     if height is None : height=width/16
     command="rm -f %s ; "%out_file +\
               "convert -size %dx%d xc:white "%(width,height)+\
@@ -232,34 +229,50 @@ def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,captions_di
               " \( tmp_labelbar1.png -scale %dx%d -geometry +0+0    \)  -composite "%\
               (lbwidth,height) +\
               " -trim "+out_file
+    print(command)
     os.system(command)
-    os.system("rm tmp_labelbar1.png  tmp_labelbar2.png")
+    #os.system("rm tmp_labelbar1.png  tmp_labelbar2.png")
 
 
-def create_labelbar(figure_file,out_file,missing=True,captions_dir=None,width=1200,height=130):
+def create_labelbar(figure_file,out_file,missing=True,captions_dir=None,width=1200,height=130,scheme="AR6",y_offset=630):
 
     # Extract labelbar from figure_file 
-    extract_labelbar(figure_file,"tmp_labelbar.png")
+    extract_labelbar(figure_file,"tmp_labelbar.png",y_offset)
     
     # Combine with legend for shadings
     if captions_dir is None :
         captions_dir=os.path.dirname(os.path.abspath( __file__ ))+"/captions/"
-    if missing : caption="caption_signif_missing.png"
-    else:        caption="caption_signif_centre.png"
+        
+    if scheme=="AR5" :
+        if missing : caption="caption_signif_missing.png"
+        else:        caption="caption_signif_centre.png"
+    elif scheme=="AR6" :
+        caption="AR6_hatching_legend.png"
+    elif scheme in [ "AR6S" , "KS13" ] :
+        caption="AR6S_hatching_legend.png"
+    else :
+        raise ValueError("Unknown hatching scheme %s"%scheme)
     shading_caption=captions_dir+caption
 
     # signif captions size is 314x175
     # label bars size is 872x130 (for page_width=2450,page_height=3444)
 
     # Divide width in segments : 3+1+3
-    signif_width=width//4
-    lbwidth= 3*signif_width
-    margin=signif_width/6
+    if scheme !=  "AR6S" :
+        signif_width=width//4
+        lbwidth= 3*signif_width
+        margin=signif_width//8
+    else :
+        signif_width=width/3
+        lbwidth= 2*signif_width
+        margin=signif_width//10
+    signif_width = width - lbwidth - margin 
+        
     if height is None : height=width/16
     command="rm -f %s ; "%out_file +\
               "convert -size %dx%d xc:white "%(width,height)+\
               " \( %s                -scale %dx%d -geometry +%d-0  \)  -composite "%\
-              (shading_caption,signif_width-2*margin,height,lbwidth+margin) +\
+              (shading_caption,signif_width,height,lbwidth+margin) +\
               " \( tmp_labelbar.png -scale %dx%d -geometry +0+0    \)  -composite "%\
               (lbwidth,height) +\
               " -trim "+out_file

@@ -71,6 +71,11 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
     variants=dict()
     #
     for exp in experiments :
+        try :
+            a=dic[exp][variable][table]
+        except :
+            print exp,variable,table
+            raise ValueError("")
         for model in dic[exp][variable][table] :
             for real in dic[exp][variable][table][model].keys() :
                 ok=True
@@ -112,41 +117,9 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                     
             variants_set=set(variants[model][exps[0]])
             for exp in exps[1:] :
-                variants_set=variants_set.intersection(set(variants[model][exp]))
-
+                variants_set   = variants_set.intersection(set(variants[model][exp]))
             if len(variants_set) > 0 :
-                # Preferentially keep a "r1" variant
-                r1s=[]
-                for variant in variants_set :
-                    if variant[0:3]=="r1i" :
-                        r1s.append(variant)
-                if len(r1s) > 0 :
-                    if len(r1s) == 1  :
-                        chosen_variant=r1s[0]
-                    else:
-                        # Preferentially keep a "r1i1" variant
-                        r1i1s=[]
-                        for variant in r1s :
-                            if "r1i1p" in variant:
-                                r1i1s.append(variant)
-                        if len(r1i1s) > 0 :
-                            if len(r1i1s) == 1  :
-                                chosen_variant=r1i1s[0]
-                            else:
-                                # Preferentially keep a "r1i1p1" variant
-                                r1i1p1s=[]
-                                for variant in r1i1s :
-                                    if "r1i1p1f" in variant:
-                                        r1i1p1s.append(variant)
-                                if len(r1i1p1s) > 0 :
-                                    if len(r1i1p1s) == 1  :
-                                        chosen_variant=r1i1p1s[0]
-                                    else:
-                                        if "r1i1p1f1" in r1i1p1s :
-                                            chosen_variant="r1i1p1f1"
-                                        else: 
-                                            raise ValueError("Should handle preference among forcing index for %s %s %s"%\
-                                                        (experiments,model,`r1i1p1s`))
+                chosen_variant = prefered_variant(variants_set,experiments,model)
                 if chosen_variant is None :
                     # a prefered variant was not found ; keep any variant
                     chosen_variant=variants_set.pop()
@@ -156,6 +129,52 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                 
     pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
     return pairs
+
+def prefered_variant (variants_set,experiments,model) :
+    chosen_variant=None
+    if len(variants_set) > 0 :
+        # Preferentially keep a "r1" variant
+        r1s=[]
+        for variant in variants_set :
+            if variant[0:3]=="r1i" :
+                r1s.append(variant)
+        if len(r1s) > 0 :
+            if len(r1s) == 1  :
+                chosen_variant=r1s[0]
+            else:
+                # Preferentially keep a "r1i1" variant
+                r1i1s=[]
+                for variant in r1s :
+                    if "r1i1p" in variant:
+                        r1i1s.append(variant)
+                if len(r1i1s) > 0 :
+                    if len(r1i1s) == 1  :
+                        chosen_variant=r1i1s[0]
+                    else:
+                        # Preferentially keep a "r1i1p1" variant
+                        r1i1p1s=[]
+                        for variant in r1i1s :
+                            if "r1i1p1f" in variant:
+                                r1i1p1s.append(variant)
+                        if len(r1i1p1s) > 0 :
+                            if len(r1i1p1s) == 1  :
+                                chosen_variant=r1i1p1s[0]
+                            else:
+                                if "r1i1p1f1" in r1i1p1s :
+                                    chosen_variant="r1i1p1f1"
+                                else: 
+                                    raise ValueError("Should handle preference among forcing index for %s %s %s"%\
+                                                     (experiments,model,`r1i1p1s`))
+        else :
+            # Choose any variant among those with lowest 'r' index
+            rmin=10000
+            for variant in variants_set :
+                r=int(variant[1:variant.find("i")])
+                if r < rmin :
+                    chosen_variant=variant
+                    rmin=r
+    return chosen_variant
+
 
 def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=None,project="CMIP6",mip=None,subexp="none"):
     """
@@ -187,8 +206,10 @@ def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=No
     for experiment in experiments :
         for model,variant in models :
             if mip is None :
-                mip = mip_for_experiment(experiment)
-            institute = institute_for_model(model,mip)
+                mip2 = mip_for_experiment(experiment)
+            else :
+                mip2=mip
+            institute = institute_for_model(model,mip2)
             drs='%s.%s.%s.%s.%s'%(project,mip,institute,model,experiment)
             realization=variant
             if table == 'yr' :
@@ -218,8 +239,11 @@ def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=No
     return rep
     
 def project_for_experiment(experiment):
-    if experiment in ["ssp126","ssp245","ssp585"] :  return "CMIP6"
+    if experiment in ["ssp119", "ssp126","ssp245", "ssp370","ssp585","rcp85","piControl","historical"] :
+        return "CMIP6"
     elif experiment in ["rcp85"] : return "CMIP5"
+    raise ValueError("Cannot tell which project defined  experiment "+experiment)
+    
 
 def mip_for_experiment(experiment):
     if experiment[0:3]=="ssp" :
@@ -231,10 +255,12 @@ def mip_for_experiment(experiment):
     raise ValueError("Cannot yet tell which MIP defined experiment "+experiment)
 
 def table_for_var_and_experiment(variable,experiment):
-    if experiment in ["ssp126","ssp245", "ssp585","rcp85","piControl","historical"] :
+    if experiment in ["ssp119", "ssp126","ssp245", "ssp370","ssp585","rcp85","piControl","historical"] :
         table="Amon"
         if variable in ["mrso","mrro","mrsos"] : 
             table="Lmon"
+        if variable in ["snw","snc"] : 
+            table="LImon"
         if variable in ["sos","tos"] : 
            table="Omon"
 	if variable=="pr_day" :
@@ -253,10 +279,14 @@ models_data = {
 #    "ACCESS1-CM2"   : ("CMIP6","CSIRO-ARCCSS"     ,None),
     "AWI-CM-1-1-MR" : ("CMIP6","AWI"		  ,2398) ,
     "AWI-ESM-1-1-LR": ("CMIP6","AWI"    	  ,None) , 
+    "BCC-CSM2-HR"   : ("CMIP6","BCC"		  ,1850) ,
     "BCC-CSM2-MR"   : ("CMIP6","BCC"		  ,1850) ,
     "BCC-ESM1"      : ("CMIP6","BCC"		  ,1850) ,
     "CAMS-CSM1-0"   : ("CMIP6","CAMS"		  ,2900) ,  # nota : ne produit pas huss
     "CAS-ESM2-0"    : ("CMIP6","CAS"    	  ,None) , 
+    "CESM1-1-CAM5-CMIP5" :("CMIP6","NCAR"	  ,None) ,
+    "CESM1-1-CAM5-SE-HR" :("CMIP6","NCAR"	  ,None) ,
+    "CESM1-1-CAM5-SE-LR" :("CMIP6","NCAR"	  ,None) ,
     "CESM2"	    : ("CMIP6","NCAR"		  ,   1) ,
     "CESM2-FV2"     : ("CMIP6","NCAR"		  ,   0) , # nota : demarre a 1, mais on ne saute que les 99 premieres annees, pour avoir 400 apres
     "CESM2-WACCM"   : ("CMIP6","NCAR"		  ,   0) , # nota : demarre a 1, mais on ne saute que les 99 premieres annees, pour avoir 400 apres
@@ -267,13 +297,18 @@ models_data = {
     "CNRM-ESM2-1"   : ("CMIP6","CNRM-CERFACS"	  ,1850) ,
     "CanESM5"       : ("CMIP6","CCCma"		  ,5600) , # des manques pour pr et mrso
     "CanESM5-CanOE" : ("CMIP6","CCCma"		  ,None) , # des manques pour pr et mrso
+    "CMCC-ESM2"     : ("CMIP6","CMCC"		  ,None) ,
     "CMCC-CM2-SR5"  : ("CMIP6","CMCC"		  ,None) ,
     "CMCC-CM2-HR4"  : ("CMIP6","CMCC"             ,None) ,
+    "CMCC-CM2-VHR4" : ("CMIP6","CMCC"             ,None) ,
     "E3SM-1-0"      : ("CMIP6","E3SM-Project"	  ,1), 
     "E3SM-1-1"      : ("CMIP6","E3SM-Project"	  ,1850), 
     "E3SM-1-1-ECA"  : ("CMIP6","E3SM-Project"	  ,   None) , 
     "EC-Earth3"	    : ("CMIP6","EC-Earth-Consortium",2259) , # pas de pr pour historical (a verifier)
-    "EC-Earth3-LR"  : ("CMIP6","EC-Earth-Consortium",None) , # pas de pr pour historical (a verifier)
+    "EC-Earth3-CC"  : ("CMIP6","EC-Earth-Consortium",None) , 
+    "EC-Earth3-LR"  : ("CMIP6","EC-Earth-Consortium",None) , 
+    "EC-Earth3P"    : ("CMIP6","EC-Earth-Consortium",None) , 
+    "EC-Earth3P-HR" : ("CMIP6","EC-Earth-Consortium",None) , 
     "EC-Earth3-Veg" : ("CMIP6","EC-Earth-Consortium",1850) ,
     "EC-Earth3-Veg-LR":("CMIP6","EC-Earth-Consortium",None) ,
     "EC-Earth3-AerChem":("CMIP6","EC-Earth-Consortium",None) ,
@@ -292,17 +327,29 @@ models_data = {
     "IITM-ESM"      : ("CMIP6","CCCR-IITM"        ,1926) ,
     "INM-CM4-8"     : ("CMIP6","INM"		  ,1850) ,
     "INM-CM5-0"     : ("CMIP6","INM"		  ,1996) ,
+    "INM-CM5-H"     : ("CMIP6","INM"		  ,1996) ,
+    "IPSL-CM6A-ATM-HR": ("CMIP6","IPSL"		  ,1850) ,
     "IPSL-CM6A-LR"  : ("CMIP6","IPSL"		  ,1850) ,
+    "IPSL-CM6A-LR-INCA": ("CMIP6","IPSL"		  ,1850) ,
     "IPSL-CM5A2-INCA":("CMIP6","IPSL"		  ,None) ,
+    "IPSL-CM7A-ATM-LR": ("CMIP6","IPSL"		  ,1850) ,
+    "IPSL-CM7A-ATM-HR": ("CMIP6","IPSL"		  ,1850) ,
+    "4AOP-V1-5"     :("CMIP6","IPSL"		  ,None) ,
     "KACE-1-0-G"    : ("CMIP6","NIMS-KMA"	  ,None) , 
     "MCM-UA-1-0"    : ("CMIP6","UA"		  ,   1) , 
     "MIROC-ES2L"    : ("CMIP6","MIROC"		  ,1850) ,
+    "MIROC-ES2H"    : ("CMIP6","MIROC"		  ,1850) ,
+    "MIROC-ES2H-NB"    : ("CMIP6","MIROC"		  ,1850) ,
     "MIROC6"	    : ("CMIP6","MIROC"		  ,3200) ,
     "MPI-ESM-1-2-HAM":("CMIP6","HAMMOZ-Consortium",None) , 
     "MPI-ESM1-2-HR" : ("CMIP6","MPI-M"		  ,1850) ,
     "MPI-ESM1-2-LR" : ("CMIP6","MPI-M"		  ,None) ,
+    "MPI-ESM1-2-XR" : ("CMIP6","MPI-M"		  ,None) ,
+    "MPI-ESM1-2-HR" : ("CMIP6","MPI"		  ,None) ,
     "MRI-ESM2-0"    : ("CMIP6","MRI"		  ,1850) ,
     "NESM3"	    : ("CMIP6","NUIST"		  , 500) , #des periodes de piControl non publiees. Mail fait
+    "NICAM16-7S"    : ("CMIP6","NIMS-KMA"	  ,None) , 
+    "NICAM16-8S"    : ("CMIP6","NIMS-KMA"	  ,None) , 
     "NorCPM1"       : ("CMIP6","NCC"	          ,   1), 
     "NorESM1-F"     : ("CMIP6","NCC"	          ,1501), 
     "NorESM2-LM"    : ("CMIP6","NCC"	          ,1600), 

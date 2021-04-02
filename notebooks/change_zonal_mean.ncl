@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Multi-plot of zonal means of P, P-E and evspsbl
-; AR6 - WGI - Chapter8 - Stéphane Sénési - 09/2019-03/2021
+; Stéphane Sénési - 09/2019-03/2021
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -133,14 +133,14 @@ begin
 
   res@gsnFrame           = False     ; Don't advance the frame
   title_height           = 0.08       ; general title
-  interval               = 0.005      ; between graphs
+  interval               = 0.005 ; 0.005      ; between graphs
   ;
   graph_height           = (1-title_height-column_titles_height-(ny+1)*interval)/int2flt(ny)
-  xaxis_height           = 0.05      ; height of axis ticks + label
+  xaxis_height           = 0.05 ; 0.05      ; height of axis ticks + label
   res@vpHeightF          = graph_height - xaxis_height 
   ;
   graph_width            = (1-line_titles_width-(nx+1)*interval)/int2flt(nx)
-  yaxis_width            = 0.08      ; width of axis ticks + label
+  yaxis_width            = 0.08 ; 0.08      ; width of axis ticks + label
   res@vpWidthF           = graph_width  - yaxis_width
 ;
 ; Title resources
@@ -169,8 +169,8 @@ begin
       res@vpYF              = 1-(title_height + xaxis_height + (iy-1)*(graph_height+interval))
       res@gsnYRefLine       = 0.
       res@gsnXRefLine       = 0.
-      res@trYMinF           = -1.6 ; -1.6
-      res@trYMaxF           = 2.8 ; 2.4
+      res@trYMinF           = -1.2 ; -1.6
+      res@trYMaxF           = 2.05 ; 2.8
       if ((iy .eq. 1 ) .and. isvar("columns")) then
         res@tiMainString      = column_titles(ix-1)
       else
@@ -178,7 +178,7 @@ begin
       end if
       ;res@tiXAxisString     = "Latitude"
                                 ;res@tiXAxisOn         = False
-      res@tiYAxisFontHeightF  = 0.014
+      res@tiYAxisFontHeightF  = 0.018 ; 0.014
       if ((ix .eq. 1 ) .and. isvar("lines")) then
         res@tiYAxisString      = line_titles(iy-1)
       else
@@ -199,15 +199,22 @@ begin
       end if
       transparent=(/1.,1.,1.,0./)
       grey=(/0.,0.,0.,0.10/)
+      black=(/0.,0.,0.,1.0/)
       res@xyMonoLineColor  = True
       sspf=ssp
       sspf(3)=1.
-      res@xyLineColor      = sspf
-      res@gsnXYFillColors   = (/ssp,ssp,transparent,grey,transparent/)
+      res@xyMonoLineColor   = False
       res@xyMonoDashPattern = False
-      res@xyDashPatterns    = (/ 0  , 0 , 0  , 0  , 0  , 11/)
       res@xyMonoLineThickness = False
-      res@xyLineThicknesses = (/ 0.5, 5., 0.5, 0.5, 0.5, 3./)
+
+      ;                         5%     50%    95%            5%var   95%var         land
+      res@xyLineColors      = (/sspf,  sspf,  sspf,          sspf,   sspf,          black/)
+      res@gsnXYFillColors   = (/    ssp,   ssp,   transparent,   grey,   transparent/)
+      res@xyDashPatterns    = (/ 0,    0,     0,             0,       0 ,           0/)
+      res@xyLineThicknesses = (/ 0.5,  6.,    0.5,           0.5,     0.5,          3./)
+
+      ;res@xyLineThicknesses = (/ 0.5, 5., 0.5, 0.5, 0.5, 3./)
+      ;res@xyDashPatterns    = (/ 0  , 0 , 0  , 0  , 0  , 11/)
 
       res@tmXTBorderOn      = False
       res@tmXTOn            = False
@@ -273,7 +280,7 @@ begin
         gsn_polyline(wks,plot,(/3.,30./),(/0.8,2./),legres)
 
         gsn_text(wks,plot,"models mean, land",31,1.6,legres)
-        gsn_polyline(wks,plot,(/12.0,30./),(/0.40,1.6/),legres)
+        gsn_polyline(wks,plot,(/3.0,30./),(/0.30,1.6/),legres)
 
         gsn_text(wks,plot,"[5%,95%] internal variability ",30.,-0.6,legres)
         gsn_polyline(wks,plot,(/5.,30./),(/-0.33,-0.6/),legres)

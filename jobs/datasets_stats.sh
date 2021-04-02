@@ -19,6 +19,9 @@ variables    :
     Omon: [ sos ]
     day : [ pr ]
 
+node : esgf-node.ipsl.upmc.fr
+#esgf-node.jpl.nasa.gov
+
 EOF
 
 

@@ -90,15 +90,16 @@ begin
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-   in = addfile(input_file,"r")
-   type="png"
-   if type .eq. "png" then ;image resolution in pixels
+    in = addfile(input_file,"r")
+    if (.not. isvar("type")) then type="png" end if
+
+    if type .eq. "png" then ;image resolution in pixels
      type@wkWidth = 1024
      type@wkHeight = 1024
    else 
      if (type .eq. "pdf") .or. (type .eq. "eps") then ;image resolution in inches
-       type@wkPaperWidthF  = 1536 
-       type@wkPaperHeightF = 1536
+       type@wkPaperWidthF  = 7.08
+       type@wkPaperHeightF = 10.
      end if
    end if
    wks = gsn_open_wks(type,figfile)             ; send graphics to PNG file

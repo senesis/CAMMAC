@@ -39,7 +39,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
      - build an ensemble representing the samples (NUMBER * NYEARS)
      - transform each member's result using POST_OPERATOR and POST_OPERATOR_ARGS (default 
        is to compute a time average)
-     - if arg VARIABILITY is False , returns that result,
+     - if arg VARIABILITY is False , returns that result (i.e. by defaut the time mean),
      - otherwise computes and returns the variability as the ensemble standard deviation 
        multiplied by square root of 2
 
@@ -238,7 +238,7 @@ def agreement_fraction_on_lower(ensemble,threshold):
 
     # 
     # Count absolute values below threshold values
-    lows=ccdo_fast(ccdo_fast(ensemble,operator="abs"),operator="lec,%g"%threshold)
+    lows=ccdo_fast(ensemble,operator="lec,%g -abs"%threshold)
     #
     nb=len(ensemble)
     fagree=ccdo_fast(ccdo_ens(lows,operator="enssum"),operator="divc,%d.0"%nb)
@@ -246,6 +246,31 @@ def agreement_fraction_on_lower(ensemble,threshold):
     return fagree
 
 
+def lowchange_conflict_masks_AR6(sign_agree_fraction, low_change_agree_fraction,
+                                 fraction_on_magnitude=0.33, fraction_on_sign=0.8) :
+    """
+
+    Returns the masks for low changes (or non-agreement on large changes)
+    and significant changes with conflicting sign, according to AR6 scheme, given :
+
+    - a field of the fraction of models which agree on sign of change
+    - a field of the fraction of models which have a |change| lower than some threshold
+
+    Returned fields :
+
+    - lowchange field : value 1 if low_change_agree_fraction is more than 
+      fraction_on_magnitude (and 0 otherwise)
+    - conflict field : value 1 if low_change_agree_fraction is .le. 
+      fraction_on_magnitude and sign_agree_fraction is less than fraction_on_sign
+      (and 0 or missing otherwise)
+
+    """
+
+    lowchange = ccdo(low_change_agree_fraction, operator="gec,%g"%fraction_on_magnitude)
+    sign_low_agree = ccdo(sign_agree_fraction, operator="ltc,%g"%fraction_on_sign)
+    conflict = ccdo2(lowchange,sign_low_agree,operator="ifnotthen")
+    return lowchange,conflict
+    
 def stippling_hatching_masks_AR5(change,variability,agreement_fract):
     """
     Returns the stippling and hatching masks according to method a) in AR5 Box2.1, given :

@@ -2,7 +2,7 @@
 
 D=/home/ssenesi/CAMMAC
 
-# Create a working directory specific to this figure. It will hold cached data and figures
+# Create a working directory specific to this job
 bname=$(basename $0)
 bname=${bname/.sh/}
 dirname=$bname
@@ -17,12 +17,12 @@ output=$bname
 cat <<-EOF >param.yaml
 	
 	do_test         : False 
-	data_versions_tag : 20200918_plus_derived
-#	version         : "_plus_KACE"
+	data_versions_tag : "20210201"
+	version         : "_derived"
 	output_option   : "add_to_input"
 	
 #	included_models : { "ssp126" : "KACE-1-0-G",  "ssp245" : "KACE-1-0-G",  "ssp585" : "KACE-1-0-G",  "historical" : "KACE-1-0-G" }
-#	excluded_models : {}
+#	excluded_models : { "ssp585" : "EC-Earth3-Veg" }
 #	periods         : { "historical" : "1850-2014", "ssp126" : "2015-2100", "ssp245" : "2015-2100", "ssp585" : "2015-2100" }
 
 

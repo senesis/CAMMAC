@@ -30,7 +30,7 @@ tim_stats : [ timmean ]
 excluded_models     : []
 included_models     : null   
 
-data_versions_tag  : 20200918_plus_derived
+data_versions_tag  : 20210201_derived
 
 do_test : False
 
