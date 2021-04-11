@@ -93,12 +93,18 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
 def choose_variant(variants,experiments,excluded_models,included_models):
 
     """
-    Provided with VARIANTS, a dict of variants , which keys are model and experiments, 
-    and values are lists of available variants
+    Provided with:
 
-    And EXPERIMENTS, a list of experiments
+      - VARIANTS, a dict of variants, which keys are models and experiments, 
+        and values are lists of available variants
+      - EXPERIMENTS, a list of experiments
 
-    Choose a variant common to all experiments but piControl, preferring ...
+    Retain those models which have a variant for all experiments, and
+    then choose a variant common to all experiments but piControl,
+    preferring the one selected by function `py:func:mips_et_al.prefered_variant()`
+
+    Retunrs list of pairs (model,variant)
+
     """
 
     pairs=[]
@@ -130,7 +136,18 @@ def choose_variant(variants,experiments,excluded_models,included_models):
     pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
     return pairs
 
+
 def prefered_variant (variants_set,experiments,model) :
+    """Choose one variant among VARIANTS_SET (having pattern r?i?p?f?):
+
+       - preferably r1i1p1f1, 
+       - otherwise any matching r1i1p1f* 
+       - otherwise any matching r1i1p*
+       - otherwise the one matching r1i*, if there is only one
+       - otherwise any of the variant with the lowest 'r' index
+
+    """
+    
     chosen_variant=None
     if len(variants_set) > 0 :
         # Preferentially keep a "r1" variant
@@ -272,138 +289,135 @@ def table_for_var_and_experiment(variable,experiment):
 
 models_data = {
     # Tells which are the project and institute for each model.
-    # Third field, which is the start date for piControl, is no more used and then values here are not reliable
     
-    "ACCESS-CM2"    : ("CMIP6","CSIRO-ARCCSS"     ,None),
-    "ACCESS-ESM1-5" : ("CMIP6","CSIRO"            ,None),
-#    "ACCESS1-CM2"   : ("CMIP6","CSIRO-ARCCSS"     ,None),
-    "AWI-CM-1-1-MR" : ("CMIP6","AWI"		  ,2398) ,
-    "AWI-ESM-1-1-LR": ("CMIP6","AWI"    	  ,None) , 
-    "BCC-CSM2-HR"   : ("CMIP6","BCC"		  ,1850) ,
-    "BCC-CSM2-MR"   : ("CMIP6","BCC"		  ,1850) ,
-    "BCC-ESM1"      : ("CMIP6","BCC"		  ,1850) ,
-    "CAMS-CSM1-0"   : ("CMIP6","CAMS"		  ,2900) ,  # nota : ne produit pas huss
-    "CAS-ESM2-0"    : ("CMIP6","CAS"    	  ,None) , 
-    "CESM1-1-CAM5-CMIP5" :("CMIP6","NCAR"	  ,None) ,
-    "CESM1-1-CAM5-SE-HR" :("CMIP6","NCAR"	  ,None) ,
-    "CESM1-1-CAM5-SE-LR" :("CMIP6","NCAR"	  ,None) ,
-    "CESM2"	    : ("CMIP6","NCAR"		  ,   1) ,
-    "CESM2-FV2"     : ("CMIP6","NCAR"		  ,   0) , # nota : demarre a 1, mais on ne saute que les 99 premieres annees, pour avoir 400 apres
-    "CESM2-WACCM"   : ("CMIP6","NCAR"		  ,   0) , # nota : demarre a 1, mais on ne saute que les 99 premieres annees, pour avoir 400 apres
-    "CESM2-WACCM-FV2":("CMIP6","NCAR"		  ,   0) , # nota : demarre a 1, mais on ne saute que les 99 premieres annees, pour avoir 400 apres
-    "CIESM"         : ("CMIP6","THU"      	  ,None) , 
-    "CNRM-CM6-1"    : ("CMIP6","CNRM-CERFACS"	  ,1850) , # manque evspsbl avant 2050, et sur une periode de 20 ans
-    "CNRM-CM6-1-HR" : ("CMIP6","CNRM-CERFACS"	  ,1850) , 
-    "CNRM-ESM2-1"   : ("CMIP6","CNRM-CERFACS"	  ,1850) ,
-    "CanESM5"       : ("CMIP6","CCCma"		  ,5600) , # des manques pour pr et mrso
-    "CanESM5-CanOE" : ("CMIP6","CCCma"		  ,None) , # des manques pour pr et mrso
-    "CMCC-ESM2"     : ("CMIP6","CMCC"		  ,None) ,
-    "CMCC-CM2-SR5"  : ("CMIP6","CMCC"		  ,None) ,
-    "CMCC-CM2-HR4"  : ("CMIP6","CMCC"             ,None) ,
-    "CMCC-CM2-VHR4" : ("CMIP6","CMCC"             ,None) ,
-    "E3SM-1-0"      : ("CMIP6","E3SM-Project"	  ,1), 
-    "E3SM-1-1"      : ("CMIP6","E3SM-Project"	  ,1850), 
-    "E3SM-1-1-ECA"  : ("CMIP6","E3SM-Project"	  ,   None) , 
-    "EC-Earth3"	    : ("CMIP6","EC-Earth-Consortium",2259) , # pas de pr pour historical (a verifier)
-    "EC-Earth3-CC"  : ("CMIP6","EC-Earth-Consortium",None) , 
-    "EC-Earth3-LR"  : ("CMIP6","EC-Earth-Consortium",None) , 
-    "EC-Earth3P"    : ("CMIP6","EC-Earth-Consortium",None) , 
-    "EC-Earth3P-HR" : ("CMIP6","EC-Earth-Consortium",None) , 
-    "EC-Earth3-Veg" : ("CMIP6","EC-Earth-Consortium",1850) ,
-    "EC-Earth3-Veg-LR":("CMIP6","EC-Earth-Consortium",None) ,
-    "EC-Earth3-AerChem":("CMIP6","EC-Earth-Consortium",None) ,
-    "FGOALS-f3-L"   : ("CMIP6","CAS"		  , 600) , 
-    "FGOALS-g3"     : ("CMIP6","CAS"		  , 200) , 
-    "FIO-ESM-2-0"   : ("CMIP6","FIO-QLNM"	  ,301) ,
-    "GFDL-AM4"	    : ("CMIP6","NOAA-GFDL"	  ,None) , 
-    "GFDL-CM4"	    : ("CMIP6","NOAA-GFDL"	  , 151) , # n'a pas fait ssp585, seulement ssp126 (en oct 2019, sur /bdd)
-    "GFDL-ESM4"	    : ("CMIP6","NOAA-GFDL"	  ,   1) ,
-    "GISS-E2-1-G"   : ("CMIP6","NASA-GISS"	  ,4150), 
-    "GISS-E2-1-G-CC": ("CMIP6","NASA-GISS"	  ,None), 
-    "GISS-E2-1-H"   : ("CMIP6","NASA-GISS"	  ,3180), 
-    "GISS-E2-2-G"   : ("CMIP6","NASA-GISS"	  ,None) , 
-    "HadGEM3-GC31-LL":("CMIP6","MOHC"		  ,1850) ,
-    "HadGEM3-GC31-MM":("CMIP6","MOHC"		  ,1850) ,
-    "IITM-ESM"      : ("CMIP6","CCCR-IITM"        ,1926) ,
-    "INM-CM4-8"     : ("CMIP6","INM"		  ,1850) ,
-    "INM-CM5-0"     : ("CMIP6","INM"		  ,1996) ,
-    "INM-CM5-H"     : ("CMIP6","INM"		  ,1996) ,
-    "IPSL-CM6A-ATM-HR": ("CMIP6","IPSL"		  ,1850) ,
-    "IPSL-CM6A-LR"  : ("CMIP6","IPSL"		  ,1850) ,
-    "IPSL-CM6A-LR-INCA": ("CMIP6","IPSL"		  ,1850) ,
-    "IPSL-CM5A2-INCA":("CMIP6","IPSL"		  ,None) ,
-    "IPSL-CM7A-ATM-LR": ("CMIP6","IPSL"		  ,1850) ,
-    "IPSL-CM7A-ATM-HR": ("CMIP6","IPSL"		  ,1850) ,
-    "4AOP-V1-5"     :("CMIP6","IPSL"		  ,None) ,
-    "KACE-1-0-G"    : ("CMIP6","NIMS-KMA"	  ,None) , 
-    "MCM-UA-1-0"    : ("CMIP6","UA"		  ,   1) , 
-    "MIROC-ES2L"    : ("CMIP6","MIROC"		  ,1850) ,
-    "MIROC-ES2H"    : ("CMIP6","MIROC"		  ,1850) ,
-    "MIROC-ES2H-NB"    : ("CMIP6","MIROC"		  ,1850) ,
-    "MIROC6"	    : ("CMIP6","MIROC"		  ,3200) ,
-    "MPI-ESM-1-2-HAM":("CMIP6","HAMMOZ-Consortium",None) , 
-    "MPI-ESM1-2-HR" : ("CMIP6","MPI-M"		  ,1850) ,
-    "MPI-ESM1-2-LR" : ("CMIP6","MPI-M"		  ,None) ,
-    "MPI-ESM1-2-XR" : ("CMIP6","MPI-M"		  ,None) ,
-    "MPI-ESM1-2-HR" : ("CMIP6","MPI"		  ,None) ,
-    "MRI-ESM2-0"    : ("CMIP6","MRI"		  ,1850) ,
-    "NESM3"	    : ("CMIP6","NUIST"		  , 500) , #des periodes de piControl non publiees. Mail fait
-    "NICAM16-7S"    : ("CMIP6","NIMS-KMA"	  ,None) , 
-    "NICAM16-8S"    : ("CMIP6","NIMS-KMA"	  ,None) , 
-    "NorCPM1"       : ("CMIP6","NCC"	          ,   1), 
-    "NorESM1-F"     : ("CMIP6","NCC"	          ,1501), 
-    "NorESM2-LM"    : ("CMIP6","NCC"	          ,1600), 
-    "NorESM2-MM"    : ("CMIP6","NCC"	          ,None), 
-    "SAM0-UNICON"   : ("CMIP6","SNU"	          ,   1), 
-    "TaiESM1"       : ("CMIP6","AS-RCEC"	  ,None) , 
-    "UKESM1-0-LL"   : ("CMIP6","MOHC"		  ,1960) ,
+    "ACCESS-CM2"    : ("CMIP6","CSIRO-ARCCSS"     ),
+    "ACCESS-ESM1-5" : ("CMIP6","CSIRO"            ),
+#    "ACCESS1-CM2"   : ("CMIP6","CSIRO-ARCCSS"     ),
+    "AWI-CM-1-1-MR" : ("CMIP6","AWI"		  ) ,
+    "AWI-ESM-1-1-LR": ("CMIP6","AWI"    	  ) , 
+    "BCC-CSM2-HR"   : ("CMIP6","BCC"		  ) ,
+    "BCC-CSM2-MR"   : ("CMIP6","BCC"		  ) ,
+    "BCC-ESM1"      : ("CMIP6","BCC"		  ) ,
+    "CAMS-CSM1-0"   : ("CMIP6","CAMS"		  ) , 
+    "CAS-ESM2-0"    : ("CMIP6","CAS"    	  ) , 
+    "CESM1-1-CAM5-CMIP5" :("CMIP6","NCAR"	  ) ,
+    "CESM1-1-CAM5-SE-HR" :("CMIP6","NCAR"	  ) ,
+    "CESM1-1-CAM5-SE-LR" :("CMIP6","NCAR"	  ) ,
+    "CESM2"	    : ("CMIP6","NCAR"		  ) ,
+    "CESM2-FV2"     : ("CMIP6","NCAR"		  ) , 
+    "CESM2-WACCM"   : ("CMIP6","NCAR"		  ) , 
+    "CESM2-WACCM-FV2":("CMIP6","NCAR"		  ) , 
+    "CIESM"         : ("CMIP6","THU"      	  ) , 
+    "CNRM-CM6-1"    : ("CMIP6","CNRM-CERFACS"	  ) , 
+    "CNRM-CM6-1-HR" : ("CMIP6","CNRM-CERFACS"	  ) , 
+    "CNRM-ESM2-1"   : ("CMIP6","CNRM-CERFACS"	  ) ,
+    "CanESM5"       : ("CMIP6","CCCma"		  ) , 
+    "CanESM5-CanOE" : ("CMIP6","CCCma"		  ) , 
+    "CMCC-ESM2"     : ("CMIP6","CMCC"		  ) ,
+    "CMCC-CM2-SR5"  : ("CMIP6","CMCC"		  ) ,
+    "CMCC-CM2-HR4"  : ("CMIP6","CMCC"             ) ,
+    "CMCC-CM2-VHR4" : ("CMIP6","CMCC"             ) ,
+    "E3SM-1-0"      : ("CMIP6","E3SM-Project"	  ), 
+    "E3SM-1-1"      : ("CMIP6","E3SM-Project"	  ), 
+    "E3SM-1-1-ECA"  : ("CMIP6","E3SM-Project"	  ,  ) , 
+    "EC-Earth3"	    : ("CMIP6","EC-Earth-Consortium") , # pas de pr pour historical (a verifier)
+    "EC-Earth3-CC"  : ("CMIP6","EC-Earth-Consortium") , 
+    "EC-Earth3-LR"  : ("CMIP6","EC-Earth-Consortium") , 
+    "EC-Earth3P"    : ("CMIP6","EC-Earth-Consortium") , 
+    "EC-Earth3P-HR" : ("CMIP6","EC-Earth-Consortium") , 
+    "EC-Earth3-Veg" : ("CMIP6","EC-Earth-Consortium") ,
+    "EC-Earth3-Veg-LR":("CMIP6","EC-Earth-Consortium") ,
+    "EC-Earth3-AerChem":("CMIP6","EC-Earth-Consortium") ,
+    "FGOALS-f3-L"   : ("CMIP6","CAS"		  ,) , 
+    "FGOALS-g3"     : ("CMIP6","CAS"		  ,) , 
+    "FIO-ESM-2-0"   : ("CMIP6","FIO-QLNM"	  ) ,
+    "GFDL-AM4"	    : ("CMIP6","NOAA-GFDL"	  ) , 
+    "GFDL-CM4"	    : ("CMIP6","NOAA-GFDL"	  ) , # n'a pas fait ssp585, seulement ssp126 (en oct 2019, sur /bdd)
+    "GFDL-ESM4"	    : ("CMIP6","NOAA-GFDL"	  ,  ) ,
+    "GISS-E2-1-G"   : ("CMIP6","NASA-GISS"	  ), 
+    "GISS-E2-1-G-CC": ("CMIP6","NASA-GISS"	  ), 
+    "GISS-E2-1-H"   : ("CMIP6","NASA-GISS"	  ), 
+    "GISS-E2-2-G"   : ("CMIP6","NASA-GISS"	  ) , 
+    "HadGEM3-GC31-LL":("CMIP6","MOHC"		  ) ,
+    "HadGEM3-GC31-MM":("CMIP6","MOHC"		  ) ,
+    "IITM-ESM"      : ("CMIP6","CCCR-IITM"        ) ,
+    "INM-CM4-8"     : ("CMIP6","INM"		  ) ,
+    "INM-CM5-0"     : ("CMIP6","INM"		  ) ,
+    "INM-CM5-H"     : ("CMIP6","INM"		  ) ,
+    "IPSL-CM6A-ATM-HR": ("CMIP6","IPSL"		  ) ,
+    "IPSL-CM6A-LR"  : ("CMIP6","IPSL"		  ) ,
+    "IPSL-CM6A-LR-INCA": ("CMIP6","IPSL"	  ) ,
+    "IPSL-CM5A2-INCA":("CMIP6","IPSL"		  ) ,
+    "IPSL-CM7A-ATM-LR": ("CMIP6","IPSL"		  ) ,
+    "IPSL-CM7A-ATM-HR": ("CMIP6","IPSL"		  ) ,
+    "4AOP-V1-5"     :("CMIP6","IPSL"		  ) ,
+    "KACE-1-0-G"    : ("CMIP6","NIMS-KMA"	  ) , 
+    "MCM-UA-1-0"    : ("CMIP6","UA"		  ) , 
+    "MIROC-ES2L"    : ("CMIP6","MIROC"		  ) ,
+    "MIROC-ES2H"    : ("CMIP6","MIROC"		  ) ,
+    "MIROC-ES2H-NB"    : ("CMIP6","MIROC"	  ) ,
+    "MIROC6"	    : ("CMIP6","MIROC"		  ) ,
+    "MPI-ESM-1-2-HAM":("CMIP6","HAMMOZ-Consortium") , 
+    "MPI-ESM1-2-HR" : ("CMIP6","MPI-M"		  ) ,
+    "MPI-ESM1-2-LR" : ("CMIP6","MPI-M"		  ) ,
+    "MPI-ESM1-2-XR" : ("CMIP6","MPI-M"		  ) ,
+    "MPI-ESM1-2-HR" : ("CMIP6","MPI"		  ) ,
+    "MRI-ESM2-0"    : ("CMIP6","MRI"		  ) ,
+    "NESM3"	    : ("CMIP6","NUIST"		  ) , 
+    "NICAM16-7S"    : ("CMIP6","NIMS-KMA"	  ) , 
+    "NICAM16-8S"    : ("CMIP6","NIMS-KMA"	  ) , 
+    "NorCPM1"       : ("CMIP6","NCC"	          ), 
+    "NorESM1-F"     : ("CMIP6","NCC"	          ), 
+    "NorESM2-LM"    : ("CMIP6","NCC"	          ), 
+    "NorESM2-MM"    : ("CMIP6","NCC"	          ), 
+    "SAM0-UNICON"   : ("CMIP6","SNU"	          ), 
+    "TaiESM1"       : ("CMIP6","AS-RCEC"	  ) , 
+    "UKESM1-0-LL"   : ("CMIP6","MOHC"		  ) ,
     #
-    # Pour RCP85, cf fonction dans periodes_pic_hisr_pour_var_rcp85 dans 
-    # script CS/periodes_picontrol_histo_pour_SSPs.sh
-    "bcc-csm1-1-m"  :("CMIP5","BCC"		  ,-99) ,
-    "bcc-csm1-1"    :("CMIP5","BCC"		  ,1) ,
-    "BNU-ESM"	    :("CMIP5","BNU"		  ,1450) , # pas de realm atmos pour historical
-    "CanESM2"	    :("CMIP5","CCCma"		  ,2015) ,
-    "CMCC-CESM"	    :("CMIP5","CMCC"		  ,None) ,
-    "CMCC-CM"	    :("CMIP5","CMCC"		  ,None) ,
-    "CMCC-CMS"	    :("CMIP5","CMCC"		  ,3684) ,
-    "CNRM-CM5"	    :("CMIP5","CNRM-CERFACS"	  ,1850) ,
-    "ACCESS1-0"     :("CMIP5","CSIRO-BOM"         ,None),
-    "ACCESS1-3"     :("CMIP5","CSIRO-BOM"         ,None),
-    "CSIRO-Mk3-6-0" :("CMIP5","CSIRO-QCCCE"	  ,1) ,
-    "FIO-ESM"	    :("CMIP5","FIO"		  ,401) ,
-    "FGOALS-g2"     :("CMIP5","LASG-CESS"         ,700) , 
-    "EC-EARTH"      :("CMIP5","ICHEC"             ,None),
-    "inmcm4"        :("CMIP5","INM"               ,None),
-    "IPSL-CM5A-LR"  :("CMIP5","IPSL"		  ,1800) ,
-    "IPSL-CM5A-MR"  :("CMIP5","IPSL"		  ,None) ,
-    "IPSL-CM5B-LR"  :("CMIP5","IPSL"		  ,None) ,
-    "FGOALS-g2   "  :("CMIP5","LASG-CESS"	  ,None) ,
-    "FGOALS-s2"	    :("CMIP5","LASG-IAP"	  ,1850) ,
-    "MIROC5"	    :("CMIP5","MIROC"		  ,2000) , 
-    "MIROC-ESM"	    :("CMIP5","MIROC"		  ,1800) ,
-    "MIROC-ESM-CHEM":("CMIP5","MIROC"		  ,None) ,
-    "HadGEM2-CC"    :("CMIP5","MOHC"		  ,None) ,
-    "HadGEM2-ES"    :("CMIP5","MOHC"		  ,1859) ,
-    "MPI-ESM-LR"    :("CMIP5","MPI-M"		  ,1850) ,
-    "MPI-ESM-MR"    :("CMIP5","MPI-M"		  ,1850) , 
-    "MRI-CGCM3"	    :("CMIP5","MRI"		  ,1851) ,
-    "MRI-ESM1"	    :("CMIP5","MRI"		  ,None) ,
-    "GISS-E2-H-CC"  :("CMIP5","NASA-GISS"	  ,None), 
-    "GISS-E2-H"     :("CMIP5","NASA-GISS"	  ,None), 
-    "GISS-E2-R-CC"  :("CMIP5","NASA-GISS"	  ,None), 
-    "GISS-E2-R"	    :("CMIP5","NASA-GISS"	  ,8706), # en fait,  a fait 450 ans a/c de 8756 
-    "CCSM4"	    :("CMIP5","NCAR"		  ,250) ,
-    "NorESM1-ME"    :("CMIP5","NCC"		  ,None) ,
-    "NorESM1-M"	    :("CMIP5","NCC"		  ,700) ,
-    "HadGEM2-AO"    :("CMIP5","NIMR-KMA"	  ,1) ,
-    "GFDL-CM3"	    :("CMIP5","NOAA-GFDL"	  ,1) , # 
-    "GFDL-ESM2G"    :("CMIP5","NOAA-GFDL"	  ,1) , 
-    "GFDL-ESM2M"    :("CMIP5","NOAA-GFDL"	  ,1) , 
-    "CESM1-BGC"	    :("CMIP5","NSF-DOE-NCAR"	  ,101) ,
-    "CESM1-CAM5-1-FV2":("CMIP5","NSF-DOE-NCAR"	  ,None) ,
-    "CESM1-CAM5"    :("CMIP5","NSF-DOE-NCAR"	  ,None) ,
-    "CESM1-WACCM"   :("CMIP5","NSF-DOE-NCAR"	  ,None) ,
+    "bcc-csm1-1-m"  :("CMIP5","BCC"		  ,) ,
+    "bcc-csm1-1"    :("CMIP5","BCC"		  ) ,
+    "BNU-ESM"	    :("CMIP5","BNU"		  ) , 
+    "CanESM2"	    :("CMIP5","CCCma"		  ) ,
+    "CMCC-CESM"	    :("CMIP5","CMCC"		  ) ,
+    "CMCC-CM"	    :("CMIP5","CMCC"		  ) ,
+    "CMCC-CMS"	    :("CMIP5","CMCC"		  ) ,
+    "CNRM-CM5"	    :("CMIP5","CNRM-CERFACS"	  ) ,
+    "ACCESS1-0"     :("CMIP5","CSIRO-BOM"         ),
+    "ACCESS1-3"     :("CMIP5","CSIRO-BOM"         ),
+    "CSIRO-Mk3-6-0" :("CMIP5","CSIRO-QCCCE"	  ) ,
+    "FIO-ESM"	    :("CMIP5","FIO"		  ) ,
+    "FGOALS-g2"     :("CMIP5","LASG-CESS"         ) , 
+    "EC-EARTH"      :("CMIP5","ICHEC"             ),
+    "inmcm4"        :("CMIP5","INM"               ),
+    "IPSL-CM5A-LR"  :("CMIP5","IPSL"		  ) ,
+    "IPSL-CM5A-MR"  :("CMIP5","IPSL"		  ) ,
+    "IPSL-CM5B-LR"  :("CMIP5","IPSL"		  ) ,
+    "FGOALS-g2   "  :("CMIP5","LASG-CESS"	  ) ,
+    "FGOALS-s2"	    :("CMIP5","LASG-IAP"	  ) ,
+    "MIROC5"	    :("CMIP5","MIROC"		  ) , 
+    "MIROC-ESM"	    :("CMIP5","MIROC"		  ) ,
+    "MIROC-ESM-CHEM":("CMIP5","MIROC"		  ) ,
+    "HadGEM2-CC"    :("CMIP5","MOHC"		  ) ,
+    "HadGEM2-ES"    :("CMIP5","MOHC"		  ) ,
+    "MPI-ESM-LR"    :("CMIP5","MPI-M"		  ) ,
+    "MPI-ESM-MR"    :("CMIP5","MPI-M"		  ) , 
+    "MRI-CGCM3"	    :("CMIP5","MRI"		  ) ,
+    "MRI-ESM1"	    :("CMIP5","MRI"		  ) ,
+    "GISS-E2-H-CC"  :("CMIP5","NASA-GISS"	  ), 
+    "GISS-E2-H"     :("CMIP5","NASA-GISS"	  ), 
+    "GISS-E2-R-CC"  :("CMIP5","NASA-GISS"	  ), 
+    "GISS-E2-R"	    :("CMIP5","NASA-GISS"	  ), 
+    "CCSM4"	    :("CMIP5","NCAR"		  ) ,
+    "NorESM1-ME"    :("CMIP5","NCC"		  ) ,
+    "NorESM1-M"	    :("CMIP5","NCC"		  ) ,
+    "HadGEM2-AO"    :("CMIP5","NIMR-KMA"	  ) ,
+    "GFDL-CM3"	    :("CMIP5","NOAA-GFDL"	  ) , 
+    "GFDL-ESM2G"    :("CMIP5","NOAA-GFDL"	  ) , 
+    "GFDL-ESM2M"    :("CMIP5","NOAA-GFDL"	  ) , 
+    "CESM1-BGC"	    :("CMIP5","NSF-DOE-NCAR"	  ) ,
+    "CESM1-CAM5-1-FV2":("CMIP5","NSF-DOE-NCAR"	  ) ,
+    "CESM1-CAM5"    :("CMIP5","NSF-DOE-NCAR"	  ) ,
+    "CESM1-WACCM"   :("CMIP5","NSF-DOE-NCAR"	  ) ,
 }
 
     
@@ -425,8 +439,4 @@ def institute_for_model(model,mip=None):
         return "*"
     return models_data[model][1]
 
-def piControl_begin(model):
-    if "/" in model :
-        model=model.split("/")[1]
-    return models_data[model][2]
 

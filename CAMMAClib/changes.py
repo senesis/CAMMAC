@@ -3,7 +3,7 @@
 CAMMAC top level functions for computing change fields with CMIP6 data, for
 basic or derived variables, and for plotting corresponding figures 
 
-Based on CliMAF >= 1.2.13
+Based on CliMAF version >= 2.0
 
 """
 import os
@@ -17,12 +17,11 @@ from variability import process_dataset, variability_AR5, agreement_fraction_on_
     lowchange_conflict_masks_AR6,\
     inter_annual_variability, control_inter_annual_variability
 
-from figures import AR6_change_figure
+from figures import change_figure
 
 from ancillary import feed_dic, choose_regrid_option
 
 from cancillary  import basin_average, mean_or_std, ensemble_stat, walsh_seasonality
-
 
 from mips_et_al import table_for_var_and_experiment, project_for_experiment, project_for_model,\
      institute_for_model, mip_for_experiment, models_for_experiments, models_for_experiments_multi_var, \
@@ -68,7 +67,7 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
                             relative=True,compute=False, house_keeping=False): 
     """
     Feed dic MODEL_CHANGES with change values for TIME_STAT of VARIABLE spatially averaged
-    over basins listed in BASINS_DATA["basins"] (which can include "globe"); this with 
+    over basins listed in BASINS_DATA["basins"] (which can include "globe" and "land"); this with 
     respect to a REF_PERIOD and for a series of time SLICES in a given SCENARIO; and for the list of 
     models which, according to dict DATA_VERSIONS, provide VARIABLE for both experiments, 
     List EXCLUDED_MODELS allows to discard models
@@ -96,13 +95,9 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
     # Compute variables values on ref_period and slices, 
     values=dict()
     if fprint : print "%6s %s %s %s"%(scenario,variable,table,time_stat),
-    #models=models_for_experiments(data_versions,variable,table,[scenario,ref_experiment],excluded_models,included_models)
     pairs=must_have_vars + [ (variable,table) ]
-    #print pairs,included_models,excluded_models
     models=models_for_experiments_multi_var(data_versions,pairs,[scenario,ref_experiment],excluded_models,included_models)
-    #print "models=",models
     for model,variant in models :
-        #if fprint : print "%6s %-15s %s"%(scenario,model,variable),
         if fprint : print " %s"%(model),
         for period in [ ref_period ] + slices :
             #if fprint : print "%s"%period[0:3],
@@ -118,7 +113,6 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
                                          compute=compute,house_keeping=house_keeping))
                 feed_dic(values,value,model,basin,period)
     if fprint : print
-    #csync()
     
     # Compute relative or absolute changes, and store it with model as last dict key
     model_changes=dict()
@@ -216,7 +210,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     """Computes a series of change fields for one
     VARIABLE and a list of EXPERIMENTS, for period PROJECTION_PERIOD
     with respect to ref_experiment for REF_PERIOD. Computed fields 
-    are e.g. mean change and median realtive change. See 'aggregates' below for 
+    are e.g. mean change and median relative change. See 'aggregates' below for 
     the list of fields.
 
     The computation is performed for all seasons listed in arg SEASONS (e.g. ['DJF', 'ANN'])
@@ -225,7 +219,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     the period(s); such transforations are found in global dict 'derivations' and must be 
     designated by a label (DERIVATION_LABEL)
 
-    See other examples in the scripts of the various figures of chapter 8 
+    See other examples in the scripts of the various figures of AR6/WGI chapter 8 
  
     Also computes variability fields and other related fields (see below) using piControl 
     and some settings for sampling it. See explanations with function 'variability_AR5' and 
@@ -235,15 +229,10 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     of the models to include for that experiment. 
 
     Toggles RELATIVE activate the computation of relative change (in addition to plain 
-    change). Field name suffix is "_rchange". 
-      - "mean_rchange" is the ensemble mean of (per-model) relative changes
-      - "means_rchange" is the relative change of ensemble means
-      - "median_rchange" is the ensemble median of (per-model) relative changes
+    change). Key suffix (in keys list below) is "_rchange". 
 
     Toggles STANDARDIZED activate the computation of change standardized by its 
-    interannual variability. Field name suffix is "_schange". 
-      - "mean_schange" is the ensemble mean of standardized changes
-      - "median_schange" is the ensemble median of standardized changes
+    interannual variability. Key suffix (in keys list below) is "_schange". 
     The (multi-decadal) variability is then also standardized the same way.
 
     Arg THRESHOLD (if not None) is used when relative is True, as a floor value of
@@ -252,11 +241,11 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     Arg LOW_CHANGE_AGREE_THRESHOLD provides the threshold for
     computing the field of fractional agreement on a low change; its
     default value is the one set for AR6 hatching sheme; it is
-    compared for each model separately to the ratio of absolute value
+    compared, separately for each model, to the ratio of absolute value
     of change by internal multi-decadal variability, for deciding for
     a low change for that model. The fraction of agreement across
     models is returned under key "agree_low" (see below), and mask
-    fields defined by AR6 hatching scheme are returned under key
+    fields defined by AR6 'comprehensive' hatching scheme are returned under key
     "lowchange" (for zones without an agreed significant change) and "conflicts" 
     (for zones with conflicting significant signals)
 
@@ -287,16 +276,22 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     - field=aggregates[variable][experiment][season][key][derivation_label] 
       where key has values : 
 
-        * mean_change, mean_rchange, mean_schange, means_rchange
-        * median_change, median_rchange, median_schange, 
-        * median_variability, 
-        * (AR5 case) : stippling, hatching masks 
-        * (AR6 simple case) : agreement_fraction_on_sign,  
-        * (AR6 complex case) : agree_low, conflict,lowchange (TBD)
+        * mean_change   : ensemble mean value of the changes
+        * mean_rchange  : ensemble mean value of the relative changes 
+        * mean_schange  : ensemble mean value of the interannual variability standardized changes  
+        * median_change, median_rchange, median_schange : same as three keys above, but for ensemble median
+        * means_rchange : relative change of the ensemble means
+        * median_variability : ensemble median of the multi-decadal variability
+        * (as defined by AR5) : stippling, hatching : 0/1 masks for the AR5 scheme stippling and hatching
+        * (as defined by AR6 simple case) : agreement_fraction_on_sign : fraction of models which agree on sign (highest fraction among the two signs)
+        * (as defined by AR6 comprehensive case) : agree_low, conflict, lowchange  : see explanation above with argument LOW_CHANGE_AGREE_THRESHOLD
 
     - field=dic[experiment][season][key][derivation_label][model]
-      where key has values : reference, projection, change, rchange, schange, nchange, variability
-    TBD : document keys above
+      where:
+ 
+        * key has values : reference, projection, change, rchange, schange, nchange, variability
+        * variability means : multi-decadal variability
+        * nchange means : change standardized by multi-decadal variability
 
     """
     aggregates=dict()
@@ -564,7 +559,7 @@ def variability_field(project,model,realization,variable,season,
         variability=regridn(variability,cdogrid=common_grid,**roption)
     return variability 
 
-def AR6_change_figure_with_caching(variable, experiment, season, 
+def change_figure_with_caching(variable, experiment, season, 
                         data_versions_tag, data_versions_dir,
                         project="CMIP6",models=None, excluded_models=[],
                         variability_models=None, variability_excluded_models=[],
@@ -587,7 +582,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
      - 'change_fields', wich computes various fields related to the change of some variable between a 
        projection and an reference period in refrence experiment (either a plain or a derived variable)
 
-     - 'AR6_change_figure', which tunes a plot of such change fields (including stippling and hatching 
+     - 'change_figure', which tunes a plot of such change fields (including stippling and hatching 
        or crosses and backslashes for representing inter-model agreement and significance of the 
        change re. variability in control runs)
 
@@ -611,20 +606,22 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     computing variability with arguments VARIABILITY_MODElS and VARIABILITY_EXCLUDED_MODElS in a way 
     similar to the models used for computing changes
 
-    Argument SCHEME allows to choose between AR5 and AR6 schemes for hatching/stippling ( with 
-    value "AR5") or backslashes/crosses (with value "AR6" for "comprehensive approach"), or 
-    slashes (with value "AR6S" for "simple approach") :
+    Argument SCHEME allows to choose between various scheme for showing change significance/robustness based on multiple models :
+
+      - AR5 scheme with stippling and hatching 
+      - AR6 simple approach with hatching (oriented like slashes) for low change
+      - AR6 comprehensive approach with hatching (oriented like backslashes) for low change, and crosses for disagreement between models on sigificant changes 
 
     Argument low_change_agree_threshold is documented with function change_fields
-    Argument change_sign_agree_threshold is used with schemes AR6 and  AR6S 
 
+    Argument change_sign_agree_threshold is used with schemes AR6 and  AR6S 
 
     Argument DEEP, if set to True, will force CliMAF to restart all computations from scratch rather than 
     using its (own) cached values. This is done whatever the value of READ.
 
     Argument DROP, if set to True, ensures that the figure will not be taken from CliMAF cache; this is 
     useful when changing anything in figure compute workflow which is not duly reperesented in CliMAF 
-    syntax for the figure definition (e.g. colormap directory, plot script code ...)
+    syntax for the figure definition (e.g. colormaps directory, plot script code ...)
 
     Returned value is a triplet :
        - a filename for the figure file, 
@@ -697,18 +694,12 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     #
     dic=None
     if len(aggregates)== 0 :
-        #start_time = datetime.now()
-        #print variable,derivations[derivation_label]
         aggregates,dic=change_fields(project,variable, experiments,seasons,ref_period,proj_period,
                                      models_dict, data_versions, derivation_label,
                                      relative,standardized,print_statistics,
                                      ref_experiment, variab_sampling_args,
                                      common_grid,table,deep,threshold,low_change_agree_threshold,
                                      change_sign_agree_threshold)
-        #
-        #end_time = datetime.now()
-        #duration = end_time - start_time
-        #print "%6.2g seconds"%duration.total_seconds()
         if write and (not read or read_failed or deep) :
             dump_aggregates(aggregates,variable,derivation_label,ref_period,proj_period,cache_dir,tag,deep)
     #
@@ -725,9 +716,9 @@ def AR6_change_figure_with_caching(variable, experiment, season,
             stippling = d["stippling"][derivation_label]
         else :
             stippling,hatching="",""
-        #plot1=AR6_change_figure_old(variable,derivation_label,field,stippling,hatching,
+        #plot1=change_figure_old(variable,derivation_label,field,stippling,hatching,
         #                    relative,labelbar,True,title,custom_plot,len(changes_models),mask)
-        plot1=AR6_change_figure(variable, derivation_label, field,
+        plot1=change_figure(variable, derivation_label, field,
                                 mask1 = hatching, pattern1 = "hatching",
                                 mask2 = stippling, pattern2 = "stippling",
                                 relative = relative, labelbar = labelbar, title = title,
@@ -735,7 +726,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     elif scheme == "AR6" :
         conflict = d["conflict"] [derivation_label]
         lowchange = d["lowchange"] [derivation_label]
-        plot1=AR6_change_figure(variable, derivation_label, field,
+        plot1=change_figure(variable, derivation_label, field,
                                 mask1 = conflict, pattern1 = "crosses",
                                 mask2 = lowchange, pattern2 = "backslashes",
                                 relative = relative, labelbar = labelbar, title = title,
@@ -743,7 +734,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
     elif scheme == "AR6S" :
         agreef = d["agreement_fraction_on_sign"] [derivation_label]
         sign_mask=ccdo_fast(agreef, operator="lec,%g"%change_sign_agree_threshold)
-        plot1=AR6_change_figure(variable, derivation_label, field,
+        plot1=change_figure(variable, derivation_label, field,
                                 mask2 = sign_mask, pattern2 = "slashes",
                                 relative = relative, labelbar = labelbar, title = title,
                                 custom_plot = custom_plot, number = len(changes_models), mask = mask)
@@ -769,7 +760,7 @@ def AR6_change_figure_with_caching(variable, experiment, season,
 
 def dump_aggregates(aggregates,variable,derive,ref_period,proj_period,cache_dir,tag,deep=None) :
     """
-    This is an ancillary function for AR6_change_figure_with_caching. See its doc
+    This is an ancillary function for change_figure_with_caching. See its doc
     """
     import os, os.path
     if not os.path.exists(cache_dir) : 
@@ -783,7 +774,7 @@ def dump_aggregates(aggregates,variable,derive,ref_period,proj_period,cache_dir,
                 
 def read_aggregates(ref_period,proj_period,tag,cache_dir) :
     """
-    This is an ancillary function for AR6_change_figure_with_caching. See its doc
+    This is an ancillary function for change_figure_with_caching. See its doc
     """
     d=dict()
     import glob

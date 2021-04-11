@@ -11,7 +11,6 @@ CAMMAC ancilliary functions using CiMAF for computing:
 
 
 import json, os, numpy as np
-from scipy.stats import tvar
 from climaf.api import *
 from climaf.operators import ccdo,ccdo_fast,ccdo2
 from env.environment import cscripts
@@ -23,6 +22,9 @@ if "gini" not in cscripts:
 
 if "knutti" not in cscripts:
     cscript("knutti",'python %s/knutti_sedlacek.py "${mmin}" "${mmin_2}" ${out}'%os.path.dirname(__file__),_var="KSRI")
+
+#dataloc(project='CMIP6', organization='generic', 
+#        url=CAMMAC+"/data/fixed_fields/${variable}_${table}_${model}_*_*${grid}.nc")
 
 def init_yeardiv():
     """

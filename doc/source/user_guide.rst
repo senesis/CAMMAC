@@ -25,7 +25,7 @@ By default, at time of writing, the notebooks use either dictionnary 20190219 an
 
 
 Notebooks common behaviour and parameters
-----------------------------------------
+------------------------------------------
 
 All notebooks have their parameters grouped in a single notebook cell which is the first code cell. Among these parameters, two are related to software locations : **climaf_lib** and **CAMMAC**
 
@@ -147,7 +147,7 @@ The general structure of the job script is :
       
 If not requested otherwise, the figure is created in sub-directory 'figures', named with script basename
 
-The syntax used for changing notebooks parameters in job scripts is Yaml, because Papermill requests it. Here is a short primer for the correspondance between Python and Yaml syntax. You may also refer to `Learn Yaml in minutes https://learnxinyminutes.com/docs/yaml/`_
+The syntax used for changing notebooks parameters in job scripts is Yaml, because Papermill requests it. Here is a short primer for the correspondance between Python and Yaml syntax. You may also refer to `Learn Yaml in minutes <https://learnxinyminutes.com/docs/yaml/>`_
 
 =================================================== ==============================================
 Python                                              Yaml    
@@ -164,13 +164,13 @@ a_number_as_a_string = "1"                          a_number_as_a_string: "1"
 
 
 Visual index of notebooks
-------------------------
+--------------------------
 
 TBD
 
 
 Advanced use : CAMMAClib
----------------------
+-------------------------
 .. include:: CAMMAClib.rst
 	     
 TBD

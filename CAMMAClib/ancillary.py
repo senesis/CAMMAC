@@ -174,10 +174,15 @@ def choose_regrid_option(variable,table,model,grid):
 
 
 def extract_labelbar(figure_file, labelbar_file, y_offset=630) :
-    # Extract labelbar from figure_file using external process
+    """ Extract labelbar from FIGURE_FILE using external process and 
+    put it in LABELBAR_FILE. Use Y_OFFSET, an offset on y axis, for 
+    skipping the map part of the figure file. 
+    Default y_offste value is OK with Ncl maps as long as they have a 'right string'
+    """
     os.system("convert %s +repage -crop +0+%d -trim %s"%(figure_file,y_offset,labelbar_file))
 
 def concatenate_labelbars(lbfile1,lbfile2,lbfile) :
+    """ Just put side-by-side the two figures in LBFILE1 and LBFILE2, producing LBFILE"""
     # 
     os.system("convert -size 1650x100 xc:white %s -geometry 1100x100 -composite "%lbfile1 +
               " %s -geometry x100+550+0 -composite -trim %s"%(lbfile2,lbfile))
@@ -185,6 +190,13 @@ def concatenate_labelbars(lbfile1,lbfile2,lbfile) :
     
 def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,
                      captions_dir=None,width=2100,height=130,scheme="AR6",y_offset=630,ratio=4.):
+
+    """ Combine the labelbar part of FIGURE_FILE1 and FIGURE_FILE2 with a 
+    third picture showing the legend relevant for the AR5 or AR6 hatching scheme  
+    SCHEME can be AR5, AR6, AR6S (AR6 simple approach) or KS13 (Knutti & Sedlaceck 2013)
+    Y_OFFSET is used for extracting labelbars (see fucntion extract_labelbars)
+    WIDTH and HEIGHT are the target sizes for the output
+    """
 
     # Extract labelbar from figure_file 
     extract_labelbar(figure_file1,"tmp_labelbar1.png",y_offset)
@@ -204,16 +216,13 @@ def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,
         raise ValueError("Unknown hatching scheme %s"%scheme)
     shading_caption=captions_dir+caption
 
-    # signif captions size is 314x175
-    # label bars size is 872x130 (for page_width=2450,page_height=3444)
-
     if scheme != "AR6S" :
-        # Divide width in segments : 3+1+3
+        # Divide width in segments 
         signif_width=width//7
         lbwidth= 3*signif_width
         margin=signif_width/6
     else:
-        # Divide width in segments : 2+1+2
+        # Divide width in segments 
         signif_width=int(float(width)/ratio)
         lbwidth= int((width-signif_width)/2.)
         margin=signif_width/10
@@ -236,6 +245,12 @@ def create_labelbar2(figure_file1,figure_file2,out_file,missing=True,
 
 def create_labelbar(figure_file,out_file,missing=True,captions_dir=None,width=1200,height=130,scheme="AR6",y_offset=630):
 
+    """ Combine the labelbar part of FIGURE_FILE with a 
+    third picture showing the legend relevant for the AR5 or AR6 hatching scheme  
+    SCHEME can be AR5, AR6, AR6S (AR6 simple approach) or KS13 (Knutti & Sedlaceck 2013)
+    Y_OFFSET is used for extracting labelbars (see fucntion extract_labelbars)
+    WIDTH and HEIGHT are the target sizes for the output
+    """
     # Extract labelbar from figure_file 
     extract_labelbar(figure_file,"tmp_labelbar.png",y_offset)
     

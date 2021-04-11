@@ -4,6 +4,13 @@ data_versions_tag          : 20200918_plus_derived_plus_KACE
 default_fixed_fields_dir   : /home/ssenesi/CAMMAC/data/fixed_fields
 climaf_lib                 : /home/ssenesi/climaf_installs/climaf_running
 
+# Tell CAMMAC where we put derived variables : the yearly statistics of daily variables
+# derived_variables_pattern  can be set to null if this feature is not used
+
+derived_variable_table     : 'yr'
+derived_variables_pattern  : /data/ssenesi/CMIP6_derived_variables/${variable}/${variable}_${table}_${model}_${experiment}_${realization}_${grid}_${version}_${PERIOD}.nc
+
+
 # this dummy setting is syntactically necessary if there is no other 
 dummy : dummy
 

@@ -73,12 +73,14 @@ cat $commons $params > $fparams
 params="--parameters_file $fparams"
 
 ENV_PM=${ENV_PM:-$this/job_env.sh}
+CAMMAC_USER_PYTHON_CODE_DIR=${CAMMAC_USER_PYTHON_CODE_DIR:-$this}
 
 # Launch  job
 qsub -V ${PBS_RESSOURCES:-${DEFAULT_PBS_RESSOURCES}} -j eo -N $jobname <<-EOF
 	cd $here
 	export CAMMAC=$CAMMAC
 	. $ENV_PM
+	export PYTHONPATH=$PYTHONPATH:$CAMMAC_USER_PYTHON_CODE_DIR
 	papermill $params $nbdir/$notebook ${output}_\${PBS_JOBID}.ipynb 
 	rm $fparams
 	EOF

@@ -1,13 +1,15 @@
 .. _extending:
 
 Extending CAMMAC use
-=================
+=====================
 
 Extending CAMMAC use beyond CMIP6
--------------------------------
+---------------------------------
 
 CAMMAC is yet validated only with data for project CMIP6, and this project name is implicit in some functions.
 However, a former version of CAMMAC was used to process CMIP5 data, and restoring this possibility could be considered. For other projects, with a less strict output data organization, an analysis would be necessary for assessing CAMMAC hard needs for processsing it.
+
+.. _adapting_for_data:
 
 Using CAMMAC outside the ESPRI platform
 ----------------------------------------

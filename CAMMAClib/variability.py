@@ -9,8 +9,6 @@ CAMMAC functions related to variability
 
 - Computing interannual variability on a dataset
 
-Based on CliMAF >= 1.2.13
-
 """
 
 

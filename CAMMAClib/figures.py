@@ -1,7 +1,7 @@
 from climaf.api import *
 import os
 
-def AR6_change_figure(variable, derivation_label, field,
+def change_figure(variable, derivation_label, field,
                       shade=True, mask1="", mask2="",pattern1="hatching",
                       pattern2="stippling",
                       relative=True, labelbar="True", 
