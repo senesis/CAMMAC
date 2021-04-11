@@ -1,8 +1,14 @@
 Introduction
 ------------
 
-This document describes CAMMAC, a software funded by Météo-France and
-initially developped by Stéphane Sénési, for helping with analyses
+**This version is tagged AR6_FGD and was used for producing figures
+for the First Governemental Draft of the 6th IPCC/WGI Assessment
+Report. It is not the most recent one, and not the best documented
+one, and is here for reference and reproducibility. Please look in the
+home repository for a more advanced one.**
+
+This document describes a software funded by Météo-France and
+originally developped by Stéphane Sénési, for helping with analyses
 and figures based on `CMIP6
 <https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_ multi-model
 results and needed in the context of Météo-France's contribution to
