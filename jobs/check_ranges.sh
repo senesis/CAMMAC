@@ -1,6 +1,7 @@
 #!/bin/bash
 
-D=/home/ssenesi/CAMMAC
+CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
+export CAMMAC=$(cd $CAMMAC; pwd)
 
 # Create a working directory specific to this figure. It will hold cached data and figures
 bname=$(basename $0)
@@ -34,4 +35,4 @@ data_versions_tag  : 20210201
 do_test : False
 
 EOF
-hours=23 $D/jobs/job_pm.sh $D/select_data_versions/Check_ranges.ipynb param.yaml $jobname $output
+hours=23 $CAMMAC/jobs/job_pm.sh $CAMMAC/select_data_versions/Check_ranges.ipynb param.yaml $jobname $output

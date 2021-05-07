@@ -1,6 +1,7 @@
 #!/bin/bash
 
-D=${CAMMAC:-/home/ssenesi/CAMMAC}
+CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
+export CAMMAC=$(cd $CAMMAC; pwd)
 
 # Create a working directory specific to this script. 
 scriptname=$(basename $0)
@@ -57,4 +58,4 @@ export ENV_PM=$(cd $(dirname $0); pwd)/job_env.sh
 commons=$(cd $(dirname $0); pwd)/common_parameters.yaml
 [ ! -f $commons ] && $commons = ""
 
-hours=23 $D/jobs/job_pm.sh $D/select_data_versions/data_selection.ipynb param.yaml $jobname $output $commons
+hours=23 $CAMMAC/jobs/job_pm.sh $CAMMAC/select_data_versions/data_selection.ipynb param.yaml $jobname $output $commons

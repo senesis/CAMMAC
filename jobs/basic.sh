@@ -1,6 +1,7 @@
 #!/bin/bash
 
 CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
+export CAMMAC=$(cd $CAMMAC; pwd)
 
 ssp=${1:-ssp245}
 season=${2:-DJF}
@@ -46,11 +47,11 @@ jobname=$figname
 output=$figname
 
 # Provide location for environment setting
-CAMMAC=(cd $CAMMAC; pwd)
+export CAMMAC=$(cd $CAMMAC; pwd)
 export ENV_PM=$CAMMAC/jobs/job_env.sh
 
 # Tell job_pm.sh to use reference parameters file 
 commons=$CAMMAC/jobs/common_parameters.yaml
 [ ! -f $commons ] && $commons = ""
 
-hours=2 $D/jobs/job_pm.sh $D/notebooks/basic.ipynb fig.yaml $jobname $output $commons
+hours=2 $CAMMAC/jobs/job_pm.sh $CAMMAC/notebooks/basic.ipynb fig.yaml $jobname $output $commons

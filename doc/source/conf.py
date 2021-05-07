@@ -19,11 +19,11 @@ import sys, os
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(1, os.path.abspath('/home/ssenesi/climaf_installs/climaf_running'))
 
-print os.path.dirname(os.path.abspath(__file__))
-exit
+#print os.path.dirname(os.path.abspath(__file__))
+
 #sys.path.insert(0, os.path.abspath('../../CAMMAClib'))
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print root
+#print root
 sys.path.insert(0, str(root)+"/CAMMAClib")
 sys.path.insert(0, str(root))
 
@@ -46,7 +46,25 @@ if rtd_version not in ["latest", "doc"]:  # TODO: add "stable" once we have it
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.viewcode']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+]
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'inherited-members': True,
+    'show-inheritance': True,
+    'autosummary': True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -58,7 +76,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'contents'
 
 # General information about the project.
 project = u'CAMMAC'
@@ -200,7 +218,7 @@ htmlhelp_basename = 'CAMMACdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'CAMMAC.tex', u'Climate Change Analysis using Multi-Model outputs and CliMAF - Documentation',
+  ('contents', 'CAMMAC.tex', u'Climate Change Analysis using Multi-Model outputs and CliMAF - Documentation',
    u'Sénési', 'manual'),
 ]
 

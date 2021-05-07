@@ -1,6 +1,7 @@
 #!/bin/bash
 
-D=/home/ssenesi/CAMMAC
+CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
+export CAMMAC=$(cd $CAMMAC; pwd)
 
 # Create a working directory specific to this job
 dir=$(basename $0)
@@ -25,4 +26,4 @@ node : esgf-node.ipsl.upmc.fr
 EOF
 
 
-hours="23" $D/jobs/job_pm.sh $D/select_data_versions/Chek_ESGF_lists_on_bdd.ipynb fig.yaml datasets_stats 
+hours="23" $CAMMAC/jobs/job_pm.sh $CAMMAC/select_data_versions/Chek_ESGF_lists_on_bdd.ipynb fig.yaml datasets_stats 
