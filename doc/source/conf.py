@@ -19,11 +19,11 @@ import sys, os
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(1, os.path.abspath('/home/ssenesi/climaf_installs/climaf_running'))
 
-print os.path.dirname(os.path.abspath(__file__))
-exit
+#print os.path.dirname(os.path.abspath(__file__))
+
 #sys.path.insert(0, os.path.abspath('../../CAMMAClib'))
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print root
+#print root
 sys.path.insert(0, str(root)+"/CAMMAClib")
 sys.path.insert(0, str(root))
 
@@ -58,7 +58,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'content'
+master_doc = 'contents'
 
 # General information about the project.
 project = u'CAMMAC'
