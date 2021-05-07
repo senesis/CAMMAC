@@ -1,3 +1,6 @@
+"""
+Two functions for querying the ESGF errata service and summarizing its results
+"""
 import requests  # use pip or conda to install it if needed
 import json
 from datetime import datetime

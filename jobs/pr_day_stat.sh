@@ -28,4 +28,4 @@ cat <<-EOF >param.yaml
 
 EOF
 
-hours=70 $D/jobs/job_pm.sh $D/select_data_versions/create_yearly_stat_of_daily_pr.ipynb param.yaml $jobname $output
+hours=70 $D/jobs/job_pm.sh $D/select_data_versions/create_derived_variable.ipynb param.yaml $jobname $output

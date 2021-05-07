@@ -77,7 +77,8 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
     end=int(data_period.split('-')[1][0:4])
     begin=true_begin+shift
     if begin+duration-1 > end :
-        # In CMIP6, some models have enough spinup before piControl start, but a too short piControl length
+        # In CMIP6, some models have enough spinup before piControl start,
+        # but a too short piControl length
         # We assume that this has been dealt with at the stage of data selection, and allow
         # to release the constraint on shift at the beginning of the data period
         alt_begin=end-duration+1
@@ -231,7 +232,7 @@ def agreement_fraction_on_sign(ensemble):
 
 def agreement_fraction_on_lower(ensemble,threshold):
     """
-    Returns the field of fraction of members of ENSEMBLE which agree on "|value| <= threshold" 
+    Returns the field of fraction of members of ENSEMBLE which agree on "abs(value) <= threshold" 
     """
 
     # 
@@ -252,7 +253,7 @@ def lowchange_conflict_masks_AR6(sign_agree_fraction, low_change_agree_fraction,
     and significant changes with conflicting sign, according to AR6 scheme, given :
 
     - a field of the fraction of models which agree on sign of change
-    - a field of the fraction of models which have a |change| lower than some threshold
+    - a field of the fraction of models which have a abs(change) lower than some threshold
 
     Returned fields :
 

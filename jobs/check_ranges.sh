@@ -22,7 +22,6 @@ variables :
     Amon: [ pr, tas, prw, evspsbl ]
     Lmon: [ mrro, mrso, mrsos ]
     Omon: [ sos ]
-    yr  : [ dday, drain ]
 
 fld_stats : [ "fldpctl,5", "fldpctl,50", "fldpctl,95" ]
 tim_stats : [ timmean ]
@@ -30,7 +29,7 @@ tim_stats : [ timmean ]
 excluded_models     : []
 included_models     : null   
 
-data_versions_tag  : 20210201_derived
+data_versions_tag  : 20210201
 
 do_test : False
 

@@ -281,9 +281,9 @@ def ensemble_stat(ens,option) :
          - the ensemble with numpy.float64 values (with OPTION='ens') or 
          - the dict value which key equals OPTION
     
-    For percentiles options, 
-        - "l5"  means lower 5% empirical percentile with linear interpolation
-        - "n95" means higher 5% percentile with log-normal approximation
+    For percentiles options, we combine a letter and a figure : 
+        - "l5"  means lower 5% **empirical** percentile with linear interpolation
+        - "n95" means higher 5% percentile with **gaussian approximation**
         - only percentiles 5, 25, 75 and 95  are processed
 
     Returned values are NumPy floats
@@ -329,7 +329,6 @@ def ensemble_stat(ens,option) :
         if option == "nq25"  : return mean - 0.675*std1
         if option == "nq75"  : return mean + 0.675*std1
         if option == "nq95"  : return mean + 1.645*std1
-        #raise ValueError("Cannot yet compute percentiles based on normal distribution assumption")    
     #
     elif option == "ens"  :
         rep=dict()

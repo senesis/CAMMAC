@@ -4,7 +4,15 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Create yearly stats out of daily precipitation, for selected experiments, models , variants; and create a data versions dictionnary for this derived data"
+    "# CAMMAC https://cammac.readthedocs.io\n",
+    "S.Sénési for Météo-France - sept 2019 to march 2021\n",
+    "\n",
+    "# Create a derived varable from a (single) primary one, provided derivation can be formulated by a CDO operations pipe\n",
+    "\n",
+    "\n",
+    "## Here, applied to the case of creating yearly stats out of daily precipitation, for selected experiments, models , variants; and create a data versions dictionnary for this derived data\n",
+    "\n",
+    "## Parameters stand in first cell, and are either commented here or in the doc (see above)"
    ]
   },
   {
@@ -28,7 +36,7 @@
    "outputs": [],
    "source": [
     "#\n",
-    "# Define derived variables : output label, input variable and CDO operation to apply\n",
+    "# Define derived variables : output label, input variable and its table, and CDO operation to apply\n",
     "#\n",
     "one_mm_per_day=\"%g\"%(1./(24.*3600.)) # in S.I.\n",
     "cases = {\n",
@@ -63,16 +71,13 @@
     "#  - add_separate (add to existing secondary dict) or \n",
     "#  - add_to_input (combine with input data versions dict, in a distinct file)\n",
     "output_option        = \"add_to_input\"\n",
-    "version              = \"_derived\" # Used in output json file name\n",
+    "version              = \"_derived\" # Used as a suffix to input name in output json file name\n",
     "\n",
     "output_root     = \"/data/ssenesi/CMIP6_derived_variables\"\n",
     "output_pattern  = output_root+\"/${variable}/${variable}_${table}_${model}_${experiment}_${realization}_${grid}_${version}_${PERIOD}.nc\"\n",
     "#\n",
     "# Should we recompute existing files ?\n",
     "recompute         = False\n",
-    "#\n",
-    "climaf_lib           = \"/home/ssenesi/climaf_installs/running\" \n",
-    "CAMMAClib            = \"/home/ssenesi/CAMMAC\"\n",
     "#\n",
     "do_test           = True"
    ]
@@ -269,14 +274,22 @@
   }
  ],
  "metadata": {
-  "language_info": {
-   "name": "python",
-   "pygments_lexer": "ipython2"
-  },
   "kernelspec": {
-   "name": "python2",
    "display_name": "Python 2",
-   "language": "python"
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.15"
   }
  },
  "nbformat": 4,

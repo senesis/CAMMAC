@@ -130,4 +130,6 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 nb_html:
-	/prodigfs/ipslfs/dods/jservon/miniconda/envs/analyse_env_2.7/bin/jupyter nbconvert --to html --output-dir html_nb ../notebooks/*.ipynb 
+	#/prodigfs/ipslfs/dods/jservon/miniconda/envs/analyse_env_2.7/bin/jupyter nbconvert --to html --output-dir html_nb ../notebooks/*.ipynb 
+	jupyter nbconvert --to html --output-dir html_nb ../notebooks/*.ipynb 
+	jupyter nbconvert --to html --output-dir html_nb ../select_data_versions/*.ipynb 

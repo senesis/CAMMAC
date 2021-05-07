@@ -26,14 +26,14 @@ def read_versions_dictionnary(tag,directory=None) :
     return d
 
 
-def models_for_experiments(dic,variable,table,experiments,excluded_models=[],included_models=None,one_per_model=True):
+def models_for_experiments(dic,variable,table,experiments,excluded_models=[],included_models=None):
     """ 
     Provided with DIC a dictionnary of data versions, and a VARIABLE name, returns 
     a list of (model,variant) pairs that have data for VARIABLE and for all EXPERIMENTS 
     (according to DIC), and the same variant index for all EXPERIMENTS for one given model
-    (excluding piControl re. variant)
+    (excluding for piControl re. variant)
 
-    There is only one variant returned  per model, preferentially a 'r1' 
+    There is only one variant returned  per model, as choosen by function `choose_variant()`
 
     The structure of the dictionnary should be as follow 
     dic[experiment][variable][table][model][realization] = (grid,anything,anything) 
@@ -50,16 +50,11 @@ def models_for_experiments(dic,variable,table,experiments,excluded_models=[],inc
                 #print "adding for model:",model
                 for real in dic[exp][variable][table][model].keys() :
                     feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
-    # for m in variants :
-    #     print m 
-    #     for exp in variants[m] :
-    #         print exp, variants[m][exp]
-    #     print
     return choose_variant(variants,experiments,excluded_models,included_models)
 
 def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,excluded_models=[],included_models=None):
     """ 
-    Same as models_for_experiments() but for a list of (variable,table) pairs
+    Same as function `models_for_experiments()` but for a list of (variable,table) pairs
     """
 
     if included_models=="None":
@@ -101,7 +96,7 @@ def choose_variant(variants,experiments,excluded_models,included_models):
 
     Retain those models which have a variant for all experiments, and
     then choose a variant common to all experiments but piControl,
-    preferring the one selected by function `py:func:mips_et_al.prefered_variant()`
+    preferring the one selected by function `prefered_variant()`
 
     Retunrs list of pairs (model,variant)
 

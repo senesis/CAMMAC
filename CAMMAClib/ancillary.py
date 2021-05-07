@@ -1,19 +1,18 @@
-from __future__  import division 
 """
-
-CAMMAC ancillary functions for :
+Ancillary functions for :
 
   - managing dictionnaries of dictionnaries of dictionnaries of ...
   - converting acronyms to nice labels
   - handling labelbars (using ImageMagick's convert) : extract, assemble
 
 """
+from __future__  import division 
 
 
 import json, os, os.path
 
-# A dictionnary of pretty labels for some acronyms
-prettier_label={
+#: A dictionnary of pretty labels for some acronyms 
+prettier_label={  
     "ssp119":"SSP1-1.9","ssp126":"SSP1-2.6","ssp245":"SSP2-4.5","ssp370":"SSP3-7.0","ssp585":"SSP5-8.5",
     #
     "DJF":"DJF","JJA":"JJA","ann":"All seasons","ANN":"All seasons",
@@ -30,7 +29,7 @@ prettier_label={
     "means_rchange"  : "percentage change of mean",
     "median_change":"median change", "median_schange":"median standardized change", "median_rchange": "median percentage change",
     #
-}
+} 
 
 # A constant useful when defining dry days
 one_mm_per_day="%g"%(1./(24.*3600.)) # in S.I.

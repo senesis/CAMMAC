@@ -4,9 +4,7 @@
 CAMMAC 
 ====================================================================
 
-CAMMAC : Climate Change Analysis using Multi-Model outputs and `CliMAF <https://climaf.readthedocs.io>`_
-
-.. include:: introduction.rst
+Climate Change Analysis using Multi-Model outputs and `CliMAF <https://climaf.readthedocs.io>`_
 
 Contents:
 ---------
@@ -15,24 +13,19 @@ Contents:
    :maxdepth: 2
 
    introduction
-   traceability
+   short_cut
+   data_dic
    software_organization
-   user_guide
+   notebooks/data_related_notebooks
+   notebooks/notebooks
+   notebooks/parameters
+   batch_mode
+   designing_scripts
+   interactive_mode
+   variables_derivation
+   lib/CAMMAClib
    extending
-   requirements
-   todoc
 
-
-
-
-   
-.. tari include:: todoc.rst
+.. 	      search_cammac
 	    
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

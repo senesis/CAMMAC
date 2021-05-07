@@ -1,3 +1,6 @@
+"""
+A single function for plotting maps the AR6 way, possibly with hatching
+"""
 from climaf.api import *
 import os
 
@@ -12,12 +15,15 @@ def change_figure(variable, derivation_label, field,
     superimposition of PATTERN1 (resp. PATTERN2) where field
     MASK1 (resp. MASK2) is 'set' (actually where it exceeds value 0.9)
 
-    Pattern1 and 2 are Ncl settings for patterns, such as 
-    'gsnShadeHigh=3', or keywords : 'hatching', 'stipping', 'crosses'
-    Pattern1 default to hatching, pattern2 to stippling
+    PATTERN1 and 2 are either :
+    - Ncl settings for patterns, such as 'gsnShadeHigh=3', or 
+    - keywords : 'hatching', 'stippling', 'crosses'
 
-    Plot characteristics comply with AR6/WGI TSU guidelines re. colormaps, projection, ...
-    (except if changed through arg CUSTOM_PLOT, see below)
+    PATTERN1 default to hatching, PATTERN2 to stippling
+
+    Plot characteristics comply with AR6/WGI TSU guidelines
+    re. colormaps, projection, ...  (except if changed through arg
+    CUSTOM_PLOT, see below)
 
     Toggle LABELBAR drives the presence of a labelbar in the plot. Its type is 
     string => value must be "True" or "False"

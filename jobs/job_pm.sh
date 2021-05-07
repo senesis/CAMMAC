@@ -12,9 +12,13 @@ usage="""
   in PARAMETERS_FILE (which must be in Yaml syntax). This file is optional. An example 
   of parameter file content shows below (after 'exit'). 
 
-  Another parameter setting file  is pre-pended : common_parameters.yaml, either the 
-  local one, or if missing the one designated by 5th arg COMMON_ARGS, or if missing 
-  the one colocated with this script.  
+  Another parametesr setting file is pre-pended :
+  common_parameters.yaml, either the one in the current working
+  directory, or if missing the one designated by 5th arg
+  COMMON_PARAMS, or if missing the one colocated with this script.
+
+  Environement variable CAMMAC_USER_PYTHON_CODE_DIR is set to this
+  script's directory if not already set
 
   Default value for JOBNAME is notebook's basename. Job submission uses environment 
   variable PBS_RESSOURCES, which defaults to :
@@ -44,10 +48,10 @@ nbdir=$(cd $(dirname $notebook) ; pwd)
 notebook=$(basename $notebook)
 
 # Directory of this script
-this=$(cd $(dirname $0) ; pwd)
+this_script_dir=$(cd $(dirname $0) ; pwd)
 
 # Unless set, assume CAMMAC top is parent dir
-CAMMAC=${CAMMAC:-$(dirname $this)}
+CAMMAC=${CAMMAC:-$(dirname $this_script_dir)}
 
 [ -z $jobname ] && jobname=${notebook/.ipynb/}
 
@@ -64,7 +68,7 @@ if [ -f commons_parameters.yaml ] ; then
     commons=commons_parameters.yaml
 else
     if [ -z $commons ] ; then 
-	commons=$this/common_parameters.yaml
+	commons=$this_script_dir/common_parameters.yaml
     fi
 fi
 
@@ -72,15 +76,15 @@ fparams=$here/tmp_${bparams}_common.yaml
 cat $commons $params > $fparams
 params="--parameters_file $fparams"
 
-ENV_PM=${ENV_PM:-$this/job_env.sh}
-CAMMAC_USER_PYTHON_CODE_DIR=${CAMMAC_USER_PYTHON_CODE_DIR:-$this}
+ENV_PM=${ENV_PM:-$this_script_dir/job_env.sh}
+CAMMAC_USER_PYTHON_CODE_DIR=${CAMMAC_USER_PYTHON_CODE_DIR:-$this_script_dir}
 
 # Launch  job
 qsub -V ${PBS_RESSOURCES:-${DEFAULT_PBS_RESSOURCES}} -j eo -N $jobname <<-EOF
 	cd $here
 	export CAMMAC=$CAMMAC
 	. $ENV_PM
-	export PYTHONPATH=$PYTHONPATH:$CAMMAC_USER_PYTHON_CODE_DIR
+	export CAMMAC_USER_PYTHON_CODE_DIR
 	papermill $params $nbdir/$notebook ${output}_\${PBS_JOBID}.ipynb 
 	rm $fparams
 	EOF
@@ -91,6 +95,7 @@ echo "Execution flow will show in $here/${output}_<jobid>.ipynb"
 
 
 exit
+
 
 
 # Example of Yaml-syntax for a parameter file content

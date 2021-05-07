@@ -1,6 +1,6 @@
 #!/bin/bash
 
-D=${CAMMAC:-/home/ssenesi/CAMMAC}
+CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
 
 ssp=${1:-ssp245}
 season=${2:-DJF}
@@ -29,7 +29,6 @@ table                  : Amon
 figure_mask            : null 
 
 included_models        : null 
-#excluded_models        : [ IITM-ESM, CAMS-CSM1-0 ]
 excluded_models        : [ ]
 #
 season                 : $season
@@ -45,11 +44,13 @@ EOF
 # Launch a job in which papermill will execute the notebook, injecting above parameters
 jobname=$figname
 output=$figname
-# Tell job_pm.sh to use co-located environment setting
-export ENV_PM=$(cd $(dirname $0); pwd)/job_env.sh
 
-# Tell job_pm.sh to use co-located parameters file 
-commons=$(cd $(dirname $0); pwd)/common_parameters.yaml
+# Provide location for environment setting
+CAMMAC=(cd $CAMMAC; pwd)
+export ENV_PM=$CAMMAC/jobs/job_env.sh
+
+# Tell job_pm.sh to use reference parameters file 
+commons=$CAMMAC/jobs/common_parameters.yaml
 [ ! -f $commons ] && $commons = ""
 
 hours=2 $D/jobs/job_pm.sh $D/notebooks/basic.ipynb fig.yaml $jobname $output $commons

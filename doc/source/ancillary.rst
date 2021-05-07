@@ -1,5 +1,0 @@
-ancillary
----------
-
-.. automodule:: ancillary
-   :members:
