@@ -3,14 +3,20 @@
 Introduction
 ------------
 
+This is both the README page of CAMMAC GitHub repository, and the
+introduction page of the `CAMMAC doc which can be reached on
+ReadTheDocs <https://cammac.readthedocs.io>`_.
+
 CAMMAC is designed for analyzing climate variables change in a `CMIP6
 <https://www.wcrp-climate.org/wgcm-cmip/wgcm-cmip6>`_ multi-model
 context, assuming that CMIP6 data is locally available.
 
-It was originally developped and used for Météo-France's
-contribution to `IPCC <https://www.ipcc.ch/>`_ Assessment Report #6
-(`AR6 <https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8
-(that chapter deals with hydrological aspects of Climate Change). This is why it applies a 'one model / one vote' rule (but see :ref:`extending`)
+It was originally developped and used for Météo-France's contribution
+to `IPCC <https://www.ipcc.ch/>`_ Assessment Report #6 (`AR6
+<https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8 (that
+chapter deals with hydrological aspects of Climate Change). This is
+why it applies a 'one model / one vote' rule (but see
+:ref:`extending`)
 
 **The typical analyses** allowed by CAMMAC are :
 
@@ -23,11 +29,19 @@ contribution to `IPCC <https://www.ipcc.ch/>`_ Assessment Report #6
     implemented. The maps also include hatching and or stippling for
     representing :ref:`confidence schemes <confidence_schemes>`
     according to AR5 or AR6 schemes
+    
+    .. image:: ../figures/Fig_ssp245_mrro_ANN_2081-2100_AR6S_0.66.png
+     :scale: 25%
+
   - create **plots of the dependance of relative change with warming
     level** for some physical variable; the change is evaluated after
     averaging on basins or seasons, or even hybrid seasons (such as
     'global winter', a composite of austral JJA and boreal DJF)
+
+    .. image:: ../figures/extra-tropics_change_rate.png
+     :scale: 100%
     
+
 
 **The workflow** has three possible modes :
 
