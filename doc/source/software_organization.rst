@@ -86,8 +86,8 @@ Once required softwares are installed, installing CAMMAC is as simple as :
 
 .. code-block:: bash
 
-     mkdir my_cammac_install
-     cd my_cammac_install
+     mkdir <my_cammac_install>
+     cd <my_cammac_install>
      git clone https://github.com/senesis/CAMMAC
 
      
@@ -114,6 +114,6 @@ Once required softwares are installed, installing CAMMAC is as simple as :
 .. code-block:: bash
 
    export CLIMAF=<a CliMAF directory with version > 2.0>
-   export CAMMAC=my_cammac_install  # Must be a full path
+   export CAMMAC=<my_cammac_install>/CAMMAC  # Must be a full path
 
   
