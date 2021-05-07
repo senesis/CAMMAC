@@ -58,7 +58,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'content'
 
 # General information about the project.
 project = u'CAMMAC'

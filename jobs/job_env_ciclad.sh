@@ -17,13 +17,13 @@ export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$PATH
 # Prepend library path similarly for that Python
 export LD_LIBRARY_PATH=${conda_env}/lib:$LD_LIBRARY_PATH
 
-# Handle CLIMAF
+# Handle CLIMAF and CAMMAC in PYTHONPATH 
 export CLIMAF=${CLIMAF?"Must set it to a directory holding CLiMAF > 2.0.0"}
-PYTHONPATH=$CLIMAF:$PYTHONPATH
+PYTHONPATH=$CLIMAF:$CAMMAC:$PYTHONPATH
 
 # Set CliMAF cache to  a location with large (unsaved) disk space
 if [[ $HOSTNAME == ciclad*  ]]  
-  then export CLIMAF_CACHE=/data/$USER/climafcache
+  then export CLIMAF_CACHE=/scratchu/$USER/climafcache
   else export CLIMAF_CACHE=/homedata/$USER/climafcache # e.g. on Camelot
 fi
 export TMPDIR=$CLIMAF_CACHE

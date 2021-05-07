@@ -1,6 +1,7 @@
 #!/bin/bash
 
-D=/home/ssenesi/CAMMAC
+CAMMAC=${CAMMAC:-/data/ssenesi/CAMMAC}
+export CAMMAC=$(cd $CAMMAC; pwd)
 
 # Create a working directory specific to this job
 bname=$(basename $0)
@@ -28,4 +29,4 @@ cat <<-EOF >param.yaml
 
 EOF
 
-hours=70 $D/jobs/job_pm.sh $D/select_data_versions/create_derived_variable.ipynb param.yaml $jobname $output
+hours=70 $CAMMAC/jobs/job_pm.sh $CAMMAC/select_data_versions/create_derived_variable.ipynb param.yaml $jobname $output
