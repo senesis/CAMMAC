@@ -218,7 +218,7 @@ htmlhelp_basename = 'CAMMACdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'CAMMAC.tex', u'Climate Change Analysis using Multi-Model outputs and CliMAF - Documentation',
+  ('index', 'CAMMAC.tex', u'Climate Change Analysis using Multi-Model outputs and CliMAF - Documentation',
    u'Sénési', 'manual'),
 ]
 

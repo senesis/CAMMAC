@@ -275,7 +275,7 @@ def table_for_var_and_experiment(variable,experiment):
         if variable in ["sos","tos"] : 
            table="Omon"
 	if variable=="pr_day" :
-	      table="day"
+            table="day"
     else :
         table=None
     return table
