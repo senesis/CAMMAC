@@ -6,7 +6,7 @@ Ancillary functions for :
   - handling labelbars (using ImageMagick's convert) : extract, assemble
 
 """
-from __future__  import division 
+from __future__  import division, print_function 
 
 
 import json, os, os.path
@@ -41,10 +41,10 @@ def feed_dic(dic,value,*keys,**kwargs):
     
     >>> d=dict()
     >>> feed_dic(d,3,1,"q")
-    >>> print "d=",d
+    >>> print("d=",d)
     d= {1: {"q": 3}}
     >>> feed_dic(d,'a',1,4,"key")
-    >>> print "d=",d
+    >>> print("d=",d)
     d= {1: {"q": 3, 4: {"key" : 'a'}}}
     
     With keyword arg use_list=True, will rather assume that stored values are lists, 
@@ -53,7 +53,7 @@ def feed_dic(dic,value,*keys,**kwargs):
     >>> e=dict()
     >>> feed_dic(e,18,key1,key2,use_list=True)
     >>> feed_dic(e,19,key1,key2,use_list=True)
-    >>> print "e=",e
+    >>> print("e=",e)
     e= {key1: {key2: [18, 19]}}
     
     With keyword arg extend_list=True, will also assume that stored values are lists, 
@@ -65,7 +65,7 @@ def feed_dic(dic,value,*keys,**kwargs):
     >>> e=dict()
     >>> feed_dic(e,2,"qq",3,use_count=True)
     >>> feed_dic(e,100,"qq",3,use_count=True)
-    >>> print "e=",e
+    >>> print("e=",e)
     e= {"qq": {3: 102}}
 
     """
@@ -89,10 +89,10 @@ def feed_dic(dic,value,*keys,**kwargs):
         if k not in d :
             d[k]=dict()
         if type(d) != type(dict()) :
-            raise ValueError(`d`+" is already a value, can't be a key!")
+            raise ValueError(str(d)+" is already a value, can't be a key!")
         d=d[k]
         if type(d) != type(dict()) :
-            raise ValueError("There is already a non-dict value (%s) for key %s at level %d"%(`d`,k,level))
+            raise ValueError("There is already a non-dict value (%s) for key %s at level %d"%(str(d),k,level))
     #
     if use_list or use_count or extend_list :
         if keys[-1] in d :

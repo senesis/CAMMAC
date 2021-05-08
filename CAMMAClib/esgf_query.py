@@ -1,6 +1,9 @@
 """
 Two functions for querying the ESGF errata service and summarizing its results
 """
+
+from __future__  import division, print_function 
+
 import requests  # use pip or conda to install it if needed
 import json
 from datetime import datetime
@@ -19,22 +22,17 @@ def query_errata_service(dataset_drs,base_url="https://errata.es-doc.org/1/"):
     try :
         r=r.json()
     except ValueError :
-        print "\nNo Json object for "+dataset_drs
+        print("\nNo Json object for "+dataset_drs)
         return None
     if 'errorCode' not in r :
         for handle in r :
-            #print handle
-            #print r[handle]['errataIds']   
-            #print type(r[handle]['errataIds'])
             l=r[handle]['errataIds']
             if type(l) != type([]) :
                 l=eval(l)
             for uid in l :
-                #print uid
                 e=requests.get(base_url+"issue/retrieve?uid="+uid).json()['issue']
                 erratas.append((e['severity'],e['description']))
     else :
-        #print "No entry for "+ds
         return None
     return erratas
 
@@ -69,7 +67,7 @@ def analyze_erratas(fn,max_count=None, do_print=True, panel=None, variable=None)
         count+=1
         fields=line.split()
         if len(fields) >= 7 and fields[1]=='none' and (max_count==None or count <= max_count) :
-            print ".",
+            print(".",end='')
             expid=fields[0]
             variant=fields[2]
             table=fields[3]
@@ -82,9 +80,7 @@ def analyze_erratas(fn,max_count=None, do_print=True, panel=None, variable=None)
                 rpanel=False
             if (panel is None or panel==rpanel) and (variable is None or variable==rvariable):
                 drs="%s.%s.%s.%s.%s.%s"%(expid,variant,table,rvariable,grid,version)
-                #print drs
                 err_list=query_errata_service(drs,errata_base_url)
-                #print err_list
                 if err_list is not None :
                     if rvariable not in berrata2models :
                         berrata2models[rvariable]=dict()
@@ -97,11 +93,11 @@ def analyze_erratas(fn,max_count=None, do_print=True, panel=None, variable=None)
     print
     if do_print :
         for variable in berrata2models :
-            print "variable",variable
+            print("variable",variable)
             for severity in berrata2models[variable] :
-                print "\tseverity",severity
+                print("\tseverity",severity)
                 for description in berrata2models[variable][severity] :
-                    print "\t\t",description,berrata2models[variable][severity][description]
+                    print("\t\t",description,berrata2models[variable][severity][description])
     #
     berrata2models["Errata service query date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     berrata2models["Errata service query url"]  = errata_base_url

@@ -9,6 +9,7 @@ CAMMAC ancilliary functions using CiMAF for computing:
 
 """
 
+from __future__  import division, print_function 
 
 import json, os, numpy as np
 from climaf.api import *
@@ -191,7 +192,7 @@ if test_land_average :
                    realization=default_variant(model,"ssp585","pr"))
     land_mean=land_average(ds(**dic),model,True,False,True)
     ncview(land_mean)
-    print cvalue(land_average(ds(**dic),model,True,False,False))*24.*3600
+    print(cvalue(land_average(ds(**dic),model,True,False,False))*24.*3600)
 
 
 def mean_or_std(scenario, ref_experiment, model, realization, season, variable, stat, table,  

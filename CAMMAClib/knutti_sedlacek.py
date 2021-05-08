@@ -12,9 +12,11 @@ Interface is tuned for use in CliMAF :
 Input fields are supposed to be already re-mapped on the same grid. 
 Input ensembles must be of the same size 
 
-This is a wrapper around a code provided by Benjamin Cook (NCAR)
+This is a wrapper around a code provided by Benjamin Cook (NCAR), for use in CliMAF
 
 """
+from __future__  import division, print_function 
+
 import xarray as xr
 import numpy as np
 import sys
@@ -32,12 +34,11 @@ def KandS(allmods_hist, allmods_fut, names) :
     lon=allmods_hist[0].lon
     time_size=allmods_hist[0].time.size
     ens_size=len(allmods_hist)
-    #print lat.size, lon.size, time_size, ens_size
     
     for f,n in zip(allmods_fut,names) :
-        print "%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape
+        print("%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape)
 
-    print { f.shape for f in allmods_fut }
+    print({ f.shape for f in allmods_fut })
         
     # Array to store robustness metric
     Rrob = np.zeros((lat.size,lon.size))*np.nan
@@ -145,8 +146,6 @@ if len(allvars) > 1 :
     raise ValueError("Too many vars : %s"%allvars)
 var=allvars[0]
 
-#print var,type(references[0][var]),
-#print references[0][var]
 
 out["KSRI"]= KandS([ ref[var]  for ref  in references  ] ,
                    [ proj[var] for proj in projections ],

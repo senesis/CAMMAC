@@ -4,6 +4,8 @@ CAMMAC top level functions for computing change fields with CMIP6 data, for
 basic or derived variables
 
 """
+from __future__  import division, print_function 
+
 import os
 import os.path
 import hashlib
@@ -94,11 +96,11 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
     
     # Compute variables values on ref_period and slices, 
     values=dict()
-    if fprint : print "%6s %s %s %s"%(scenario,variable,table,time_stat),
+    if fprint : print("%6s %s %s %s"%(scenario,variable,table,time_stat),end='')
     pairs=must_have_vars + [ (variable,table) ]
     models=models_for_experiments_multi_var(data_versions,pairs,[scenario,ref_experiment],excluded_models,included_models)
     for model,variant in models :
-        if fprint : print " %s"%(model),
+        if fprint : print(" %s"%(model),end='')
         for period in [ ref_period ] + slices :
             #if fprint : print "%s"%period[0:3],
             for basin in lbasins :
@@ -112,7 +114,7 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
                                          period, data_versions, operator, args,
                                          compute=compute,house_keeping=house_keeping))
                 feed_dic(values,value,model,basin,period)
-    if fprint : print
+    if fprint : print()
     
     # Compute relative or absolute changes, and store it with model as last dict key
     model_changes=dict()
@@ -176,7 +178,7 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
     for model,realization in models :
         grid,ref_version,_= data_versions[ref_experiment][variable][table][model][realization]
         grid,version,_    = data_versions[experiment]    [variable][table][model][realization]
-        print "Global_change - processing %20s %s %s"%(model,realization,version),
+        print("Global_change - processing %20s %s %s"%(model,realization,version),end='')
         dic=dict(project="CMIP6_extent",
                  experiment=ref_experiment, extent_experiment=experiment,
                  model=model, 
@@ -192,7 +194,7 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
         ref_tasmean=ccdo(ds(**ref),operator="timmean -fldmean")
         cfile(ref_tasmean)
         ref=cvalue(ref_tasmean)
-        #print "GTAS = %g"%ref
+        #print("GTAS = %g"%ref)
         #
         GSAT[model]=ccdo_fast(filtered_tasmean,operator="subc,%g"%ref)
     #
@@ -306,9 +308,9 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                         "a variable standardized by inter_annual variability")
     #
     if print_statistics :
-        print "Values below are field means, except for last two columns. Last third is median and %. Last three columns are %"
-        print "exp.  seas model                 variablity   reference   projection       change|rel/std   :mdn     max     p90"
-        print 120*"-"
+        print("Values below are field means, except for last two columns. Last third is median and %. Last three columns are %")
+        print("exp.  seas model                 variablity   reference   projection       change|rel/std   :mdn     max     p90")
+        print(120*"-")
 
     # a commodity function for storing resuts in dic aggregates
     def feed(value,key):
@@ -324,7 +326,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                         len(control_models) > 0 )
         #
         for season in seasons :
-            if not print_statistics: print experiment,season,
+            if not print_statistics: print(experiment,season,end='')
             #
             #
             for model,realization in models :
@@ -335,7 +337,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                             threshold)
             #
             if do_variability :
-                if print_statistics : print "Variabilities :",
+                if print_statistics : print("Variabilities :",end='')
                 for model,realization in control_models :
                     variability=variability_field(project,model,realization,
                             variable, season, derivation_label, standardized,
@@ -343,7 +345,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                             data_versions,deep)
                     feed_dic(dic,variability,experiment,season,"variability",derivation_label,model)
                     if print_statistics :
-                        print "%s % 7.2g / "%(model,cvalue(ccdo_fast(variability,operator="fldmean"))),
+                        print("%s % 7.2g / "%(model,cvalue(ccdo_fast(variability,operator="fldmean"))),end='')
                     #
                     # Compute ratio of change to internal variability for models which allow for
                     # (done on common grid)
@@ -356,13 +358,13 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                 
             # Compute ensemble statistics
             if print_statistics :
-                print "%s medians :"%experiment,
+                print("%s medians :"%experiment,end='')
             ensavg=ccdo_ens(cens(dic[experiment][season]["change"][derivation_label]),operator='ensmean')
             feed(ensavg,"mean_change")
             ensmdn=ccdo_ens(cens(dic[experiment][season]["change"][derivation_label]),operator='enspctl,50')
             feed(ensmdn,"median_change")
             if print_statistics :
-                print "change %7.2g"%cvalue(ccdo_fast(ensmdn,operator="fldpctl,50")),
+                print("change %7.2g"%cvalue(ccdo_fast(ensmdn,operator="fldpctl,50")),end='')
             if relative :
                 rmean=ccdo_ens(cens(dic[experiment][season]["rchange"][derivation_label]),operator='ensmean')
                 feed(rmean,"mean_rchange")
@@ -374,7 +376,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                 rmeans=ccdo2(ccdo2(proj_ensavg,ref_ensavg,operator="sub"),ref_ensavg,operator="mulc,100 -div")
                 feed(rmeans,"means_rchange")
             if print_statistics :
-                print "relative %7.2g %%"%cvalue(ccdo_fast(rmedian,operator="fldpctl,50")),
+                print("relative %7.2g %%"%cvalue(ccdo_fast(rmedian,operator="fldpctl,50")),end='')
             if standardized :
                 smean=ccdo_ens(cens(dic[experiment][season]["schange"][derivation_label]),operator='ensmean')
                 feed(smean,"mean_schange")
@@ -382,7 +384,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                 feed(smedian,"median_schange")
             if print_statistics :
                 csync()
-                print 
+                print() 
             #
             if standardized :
                 agree_field="schange"
@@ -416,11 +418,11 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
                     feed(l,"lowchange")
                     feed(c,"conflict")
                 else:
-                    print "No common model for ",variable,seasons,experiments
-                    print "models: ",models
-                    print "control_models:",control_models
+                    print("No common model for ",variable,seasons,experiments)
+                    print("models: ",models)
+                    print("control_models:",control_models)
             #
-            print
+            print()
     return aggregates, dic
 
 
@@ -438,9 +440,9 @@ def change_fields_internal(dic,project,model,realization,variable,ref_period,
             feed_dic(dic,field,experiment,season,name,derivation_label,model)
 
     if print_statistics :
-        print "%s %s %-20s"%(experiment,season, model),
+        print("%s %s %-20s"%(experiment,season, model),end='')
     else :
-        print model,
+        print(model,end='')
     #
     #project=project_for_experiment(experiment)
     grid,version,_=data_versions[ref_experiment][variable][table][model][realization]
@@ -499,22 +501,22 @@ def change_fields_internal(dic,project,model,realization,variable,ref_period,
     #
     if print_statistics :
         variab_value=0.
-        print "      %7.2g     %7.2g      %7.2g      %7.2g"%(
+        print("      %7.2g     %7.2g      %7.2g      %7.2g"%(
             variab_value,\
             cvalue(ccdo_fast(reference,operator="fldmean")),\
             cvalue(ccdo_fast(projection,operator="fldmean")),\
-            cvalue(ccdo_fast(change,operator="fldmean"))),
+            cvalue(ccdo_fast(change,operator="fldmean"))),end='')
         if relative :
-            print "      %7.2g %7.2g  %7.2g"%(
+            print("      %7.2g %7.2g  %7.2g"%(
                 cvalue(ccdo_fast(rchange,operator="fldpctl,50")),
                 cvalue(ccdo_fast(rchange,operator="fldmax")),
-                cvalue(ccdo_fast(rchange,operator="fldpctl,90"))),
+                cvalue(ccdo_fast(rchange,operator="fldpctl,90"))),end='')
         if standardized :
-            print "      %7.2g %7.2g  %7.2g"%(
+            print("      %7.2g %7.2g  %7.2g"%(
                 cvalue(ccdo_fast(schange,operator="fldmean")),
                 cvalue(ccdo_fast(schange,operator="fldmax")),
-                cvalue(ccdo_fast(schange,operator="fldpctl,90"))),
-        print       
+                cvalue(ccdo_fast(schange,operator="fldpctl,90"))),end='')
+        print()
     return
 
 def variability_field(project,model,realization,variable,season,
@@ -694,10 +696,6 @@ def change_figure_with_caching(variable, experiment, season,
     models_reals_string=reduce(lambda x,y : "%s_%s"%(x,y), [ "%s%s"%(m,r) for m,r in changes_models])
     tag=data_versions_tag + "_" + hashlib.sha1(models_reals_string).hexdigest()[0:8]
     #
-    # print 'models',models
-    # print 'changes_models',changes_models
-    # print 'models_dict',models_dict
-    #
     aggregates={}
     read_failed=False
     if read and deep is not True :
@@ -705,7 +703,7 @@ def change_figure_with_caching(variable, experiment, season,
         try :
             a=aggregates[variable][experiment][season][field_type][derivation_label]
         except :
-            print "Needed fields not found in cache; will launch comptation"
+            print("Needed fields not found in cache; will launch comptation")
             read_failed=True
             aggregates={}
     #
@@ -769,9 +767,8 @@ def change_figure_with_caching(variable, experiment, season,
     else:
         filename=outfile
     cfile(plot1,filename,ln=True)
-    print "Figure available as ",filename
+    print("Figure available as ",filename)
     return filename,plot1,dic,variab_models,changes_models
-    #return "",plot1,dic,variab_models,changes_models
 
 def dump_aggregates(aggregates,variable,derive,ref_period,proj_period,cache_dir,tag,deep=None) :
     """
@@ -794,7 +791,6 @@ def read_aggregates(ref_period,proj_period,tag,cache_dir) :
     d=dict()
     import glob
     files=glob.glob(cache_dir+"/*=*=*=*=*=*=*=%s.nc"%tag)
-    #print files
     for f in files :
         bn=f.split("/")[-1]
         bn=bn.split(".")[0]

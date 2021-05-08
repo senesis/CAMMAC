@@ -10,7 +10,7 @@ CAMMAC functions related to variability
 - Computing interannual variability on a dataset
 
 """
-
+from __future__  import division, print_function 
 
 from climaf.api import *
 from climaf.period import init_period
@@ -125,7 +125,6 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
     # Build an ensemble which members are the slices
     econtrol=cens()
     slices=[ "%d-%d"%(begin+n*nyears,begin+(n+1)*nyears-1) for n in range(0,number) ]
-    #print "model=",model," variant=",realization," slices=",slices
     for period in slices :
         econtrol[period]=ccdo_fast(dat,operator="seldate,"+init_period(period).iso())
 

@@ -6,6 +6,8 @@ CAMMAC ancilliary functions for :
 
 
 """
+from __future__  import division, print_function 
+
 import json
 
 from ancillary import feed_dic
@@ -47,7 +49,6 @@ def models_for_experiments(dic,variable,table,experiments,excluded_models=[],inc
     for exp in experiments :
         for model in dic[exp][variable][table] :
             if included_models is None or model in included_models :
-                #print "adding for model:",model
                 for real in dic[exp][variable][table][model].keys() :
                     feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
     return choose_variant(variants,experiments,excluded_models,included_models)
@@ -69,7 +70,7 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
         try :
             a=dic[exp][variable][table]
         except :
-            print exp,variable,table
+            print(exp,variable,table)
             raise ValueError("")
         for model in dic[exp][variable][table] :
             for real in dic[exp][variable][table][model].keys() :
@@ -125,8 +126,6 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                     # a prefered variant was not found ; keep any variant
                     chosen_variant=variants_set.pop()
                 pairs.append((model,chosen_variant))
-        # else:
-        #     print "model %s does not fit"%model , set(variants[model]), set(experiments) , included_models, excluded_models      
                 
     pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
     return pairs
