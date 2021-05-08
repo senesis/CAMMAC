@@ -34,12 +34,29 @@ def KandS(allmods_hist, allmods_fut, names) :
     lon=allmods_hist[0].lon
     time_size=allmods_hist[0].time.size
     ens_size=len(allmods_hist)
-    
+
+    models_in_error=[]
     for f,n in zip(allmods_fut,names) :
+        if f.time.size != time_size :
+            models_in_error.append(n)
         print("%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape)
 
-    print({ f.shape for f in allmods_fut })
+    if len(models_in_error) !=0 :
+        print("There are various shaeps for input data : ",{ f.shape for f in allmods_fut })
+        print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
+        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error))
         
+    models_in_error=[]
+    for f,n in zip(allmods_hist,names) :
+        if f.time.size != time_size :
+            models_in_error.append(n)
+        print("%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape)
+
+    if len(models_in_error) !=0 :
+        print("There are various shaeps for input data : ",{ f.shape for f in allmods_hist })
+        print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
+        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error))
+
     # Array to store robustness metric
     Rrob = np.zeros((lat.size,lon.size))*np.nan
     

@@ -30,7 +30,7 @@ table                  : Amon
 figure_mask            : null 
 
 included_models        : null 
-excluded_models        : [ ]
+excluded_models        : [ IITM-ESM, CAMS-CSM1-0 ] # They don't have the right time period
 #
 season                 : $season
 experiment             : $ssp 

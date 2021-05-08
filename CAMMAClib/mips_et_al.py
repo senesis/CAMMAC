@@ -175,7 +175,7 @@ def prefered_variant (variants_set,experiments,model) :
                                     chosen_variant="r1i1p1f1"
                                 else: 
                                     raise ValueError("Should handle preference among forcing index for %s %s %s"%\
-                                                     (experiments,model,`r1i1p1s`))
+                                                     (experiments,model,str(r1i1p1s)))
         else :
             # Choose any variant among those with lowest 'r' index
             rmin=10000
