@@ -32,9 +32,9 @@ Note that parameters included in
 </../../jobs/common_parameters.yaml>` are take into account, but with
 a lower priority than those set in the script itself
 
-If user 'ssenesi' has been removed, you should reach the same results
-by first getting CAMMAC source using only the :ref:`code cloning
-instructions <cloning>` of the installation section
+If directory '/data/ssenesi/CAMMAC' has been removed, you should get 
+the same results by first getting CAMMAC source using only the
+:ref:`code cloning instructions <cloning>` of the installation section
 
 If you have other needs, have may a look at :ref:`available_notebooks` and
 :ref:`batch_mode`

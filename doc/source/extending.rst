@@ -52,4 +52,7 @@ cases arise :
   with the needed changes regarding base_patterns (toward the end of
   the module).
   
-- for using the data inspection notebook (see :ref:`data_related_notebooks`), a slight change is necessary  to adapt to local data organization (see :ref:`there <dictionnary_structure>`).
+- for using the data inspection notebook (see
+  :ref:`data_related_notebooks`), a slight change is necessary to
+  adapt to local data organization (see :ref:`there
+  <dictionnary_structure>`).

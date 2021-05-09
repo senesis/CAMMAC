@@ -47,7 +47,6 @@ jobname=$figname
 output=$figname
 
 # Provide location for environment setting
-export CAMMAC=$(cd $CAMMAC; pwd)
 export ENV_PM=$CAMMAC/jobs/job_env.sh
 
 # Tell job_pm.sh to use reference parameters file 

@@ -37,13 +37,15 @@ dictionnary'
 Building a data versions dictionnary
 ------------------------------------
 
-CAMMAC includes a notebook for helping with that step,
-:download:`data_selection </../html_nb/data_selection.html>` in directory
-select_data_versions; it has to be launched once before invoking any
-computation script or notebook, and this should be redone when
-available datasets do change (this is actualy mandatory if some
-dataset is withdrawn.  Helper script :download:`$CAMMAC/jobs/select_data.sh
-</../../jobs/select_data.sh>` can be used
+CAMMAC includes a notebook for helping with buiding a data versions
+dictionnary, :download:`data_selection
+</../html_nb/data_selection.html>` in directory select_data_versions;
+it has to be launched once before invoking any computation script or
+notebook, and this should be redone when available datasets do change
+(this is actually mandatory if some dataset is withdrawn,e xcempt
+using notebook's parameter ``exclude_models`` ).  Helper script
+:download:`$CAMMAC/jobs/select_data.sh </../../jobs/select_data.sh>`
+can be used
 
 This notebook is further described in :ref:`the section for data
 related notebooks <data_related_notebooks>`

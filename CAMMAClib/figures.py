@@ -1,7 +1,7 @@
 """
 A single function for plotting maps the AR6 way, possibly with hatching
 """
-from climaf.api import plot
+from climaf.api import *
 import os
 
 def change_figure(variable, derivation_label, field,
