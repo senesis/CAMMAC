@@ -17,7 +17,7 @@ to `IPCC <https://www.ipcc.ch/>`_ Assessment Report #6 (`AR6
 <https://www.ipcc.ch/assessment-report/ar6/>`_) WG1 Chapter 8 (that
 chapter deals with hydrological aspects of Climate Change). This is
 why it applies a 'one model / one vote' rule (but see
-:ref:`extending`)
+:ref:`one_model_on_vote`)
 
 **The typical analyses** allowed by CAMMAC are :
 
@@ -55,14 +55,14 @@ quoted for the second mode; in both cases, one sets :ref:`a number of
 parameters <notebooks_parameters>` which allow to tune the processing. 
 
 For all three modes **a data versions dictonnary is needed**, as a basis
-for selecting the dataset to process (details :any:`here <traceability>`)
+for selecting the dataset to process (details :ref:`here <traceability>`)
 
 A few notebooks dealing with data availability, quality control and
 pre-processing are also provided and :ref:`described here <data_related_notebooks>`
 
 
 While CAMMAC has been developped and used on `IPSL's
-<https://www.ipsl.fr/>`_ `ESPRI <https://en.aeris-data.fr/espri-2/>`_
+<https://www.ipsl.fr/>`_ `ESPRI`_ <https://en.aeris-data.fr/espri-2/>`_
 platform, it is fully portable and usable on any machine with CMIP6
 data and e.g. conda-enabled environments (see :ref:`requirements`)
 

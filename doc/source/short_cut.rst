@@ -2,8 +2,8 @@ Short cut
 ----------
 If you are in the lucky case where :
 
-- you have access to the `ESPRI <https://en.aeris-data.fr/espri-2/>`_ platform
-- that platform still hosts user 'ssenesi'
+- you have access to the `ESPRI`_ platform
+- that platform still hosts  directory '/data/ssenesi/CAMMAC'
 - you have a simple need for a change map
 
 you can create a map of the change in variable ``mrro`` for season
@@ -39,8 +39,7 @@ instructions <cloning>` of the installation section
 If you have other needs, have may a look at :ref:`available_notebooks` and
 :ref:`batch_mode`
 
-If you don't have access to the `ESPRI
-<https://en.aeris-data.fr/espri-2/>`_ platform, you will need :
+If you don't have access to the `ESPRI`_ platform, you will need :
 
 - to have CMIP6 data locally available
 - possibly, to tell CliMAF how to access it (see :ref:`adapting_for_data`)

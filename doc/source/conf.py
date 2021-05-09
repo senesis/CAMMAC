@@ -16,17 +16,17 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(1, os.path.abspath('/home/ssenesi/climaf_installs/climaf_running'))
-
-#print os.path.dirname(os.path.abspath(__file__))
-
-#sys.path.insert(0, os.path.abspath('../../CAMMAClib'))
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#print root
-sys.path.insert(0, str(root)+"/CAMMAClib")
 sys.path.insert(0, str(root))
+sys.path.insert(0, str(root)+"/CAMMAClib")
+sys.path.insert(0, str(root)+"/dummy_climaf")
 
+
+print(sys.path)
+
+import climaf
+
+exit
 from CAMMAClib import __version__
 
 os.environ['CLIMAF_CHECK_DEPENDENCIES']="no"
@@ -55,7 +55,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
+#    'sphinx.ext.napoleon',
 ]
 
 # autodoc_default_options = {
@@ -130,7 +130,14 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme' 
+sys.path.append(os.path.expanduser("~/.local/lib/python2.7/site-packages"))
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+else:
+    html_theme = 'default'
+#html_theme = 'sphinx-rtd-theme' 
 #html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -219,7 +226,7 @@ htmlhelp_basename = 'CAMMACdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'CAMMAC.tex', u'Climate Change Analysis using Multi-Model outputs and CliMAF - Documentation',
-   u'Sénési', 'manual'),
+   u'Stéphane Sénési', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -271,4 +278,7 @@ intersphinx_mapping = {
 
 rst_prolog = """
 .. _papermill:  https://papermill.readthedocs.io/
+.. _ESPRI:      ESPRI <https://mesocentre.ipsl.fr/>
 """
+
+# https://en.aeris-data.fr/espri-2/

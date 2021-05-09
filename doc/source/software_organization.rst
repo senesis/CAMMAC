@@ -10,7 +10,7 @@ Software organization and directory structure
 The directory structure of the software is composed of 5 directories :
 
 - **CAMMAClib**/, a library of python (2.7) modules providing shared
-  functions, and documented :any:`there <CAMMAClib>`
+  functions, and documented :ref:`there <CAMMAClib>`
 
 - **notebooks**/, a series of parameterized IPython notebooks, which can be
   seen as "main programs" using CAMMAClib; each notebook was inspired by
@@ -32,7 +32,7 @@ The directory structure of the software is composed of 5 directories :
 - **data**/ :
 
   - Data_versions_selection_20210201.json : a dictionnary of CMIP6
-    data versions available on the ESPRI platform on 1st february
+    data versions available on the `ESPRI`_ platform on 1st february
     2021, suited for use with the notebooks
 
   - fixed_fields/, a series of fixed fields representing the land
@@ -41,7 +41,7 @@ The directory structure of the software is composed of 5 directories :
     some CMIP6 experiments for some models;
 
   - basins/ , a series of datafiles defining AR6 monsoon regions (courtesy of Sabin Thazhe Purayil) and a file describing world hydrological
-    basins (courtesy of B.Decharme - ref TBD)
+    basins (courtesy of B.Decharme - `Decharme et al. 2019 <https://doi.org/10.1029/2018MS001545>`_)
 
   - colomaps/ , the series of AR6 defined Ncl colormaps
 
@@ -55,22 +55,22 @@ CAMMAC main programs are notebooks and so need Jupyter. However, using
 CAMMAClib in similar python main programs is also possible
 
 CAMMAClib and notebooks heavily rely on `CliMAF
-<https://climaf.readthedocs.io>`_ for implementing data access, for
-computations (mainly using `CDO
+<https://climaf.readthedocs.io>`_ with a version >= 2.0; for
+implementing data access, for computations (mainly using `CDO
 <https://code.mpimet.mpg.de/projects/cdo>`_ behind the curtain) and
 for ploting figures (using `Ncl <https://www.ncl.ucar.edu/>`_ behind
 the curtain).
 
 Because CliMAF has a built-in knowledge of CMIP6 data organization on
-the ESPRI platform, a slight adaptation has to be done for using
+the `ESPRI`_ platform, a slight adaptation has to be done for using
 CAMMAC on other platforms (see :ref:`adapting_for_data`)
 
 The job_pm.sh utility make use of `papermill`_ for launching batch executions of
 notebooks, while allowing for changing their parameters.
 
-Only quite common python packages are needed; package xarray is used when requesting Gini index computation 
-
-TBD
+Only quite common python packages are needed; they include numpy and
+xarray (and requests when using the notebook queryin the ESGF errata
+system). TBD : give a detailed list of actually required packages
 
 
 .. _installation:
@@ -78,7 +78,8 @@ TBD
 Installation
 -------------
 
-Once required softwares are installed, installing CAMMAC is as simple as :
+Once :ref:`required softwares <requirements>` are installed, installing
+CAMMAC is as simple as :
 
 .. _cloning:
 

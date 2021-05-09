@@ -32,7 +32,7 @@ dictionnary of dictionnaries of ... organized that way :
 
 In its present version, and only for performance purpose, that
 notebook code is slighlty dependent on data organization used on the
-ESPRI platform; however, its data inspection mechanism mainly relies
+`ESPRI`_ platform; however, its data inspection mechanism mainly relies
 on CliMAF data management and should work anywhere after a slight
 adapatation (in the first few cells : search for '/bdd')
 
@@ -78,7 +78,7 @@ Notebook :download:`Check_errata </../html_nb/Check_errata.html>`
 queries the ESGF for latest version for a series of variables and
 experiments and checks its availability on the local file system;
 
-At the time of writing, this notebook is tune for the ESPRI computing
+At the time of writing, this notebook is tune for the `ESPRI`_ computing
 system and makes use of the file hierarchy known on this system. It
 can be run automatically, e.g. using job :download:`datasets_stat.sh
 </../../jobs/datasets_stats.sh>`. It prints its results and send them to a

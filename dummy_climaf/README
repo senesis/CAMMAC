@@ -1,0 +1,3 @@
+This is a dummy Climaf, just for the sake that, on ReadTheDocs (where
+CliMAF can't yet be easily installed), the CAMMAC library modules can
+be actually loaded, for docstrings to be inserted in the doc

@@ -17,10 +17,10 @@ advisable to test the :ref:`derived_variable parameters
 
 .. _adapting_for_data:
 
-Using CAMMAC outside the ESPRI platform
-----------------------------------------
+Using CAMMAC outside the `ESPRI`_ platform
+--------------------------------------------
 
-CAMMAC was developped on the ESPRI platform. Because CliMAF has a
+CAMMAC was developped on the `ESPRI`_ platform. Because CliMAF has a
 built-in knowledge of CMIP6 data organization on that platform (and a
 few others), this allows to avoid describing this data oragnization
 in CAMMAC. For using CAMMAC on other platforms with CMIP6 data, two

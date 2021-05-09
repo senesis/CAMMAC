@@ -44,7 +44,7 @@ def KandS(allmods_hist, allmods_fut, names) :
     if len(models_in_error) !=0 :
         print("There are various shaeps for input data : ",{ f.shape for f in allmods_fut })
         print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
-        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error))
+        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error)
         
     models_in_error=[]
     for f,n in zip(allmods_hist,names) :
@@ -55,7 +55,7 @@ def KandS(allmods_hist, allmods_fut, names) :
     if len(models_in_error) !=0 :
         print("There are various shaeps for input data : ",{ f.shape for f in allmods_hist })
         print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
-        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error))
+        raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error)
 
     # Array to store robustness metric
     Rrob = np.zeros((lat.size,lon.size))*np.nan
@@ -154,8 +154,8 @@ if "time_bnds" in reference :
     out["time_bnds"][1] = projections[0]["time_bnds"].isel(time=-1)[1]
 
 # Compute time instant in the middle of projections time period
-t=projections[0]["time"]
-out.assign_coords(time=("time",t.isel(time=[t.size/2]).data))
+#t=projections[0]["time"]
+#out.assign_coords(time=("time",t.isel(time=[t.size/2]).data))
 
 # identify sole input var
 allvars= [ var for var in reference.keys() if "_bnds" not in var ]

@@ -1,7 +1,7 @@
 """
 A single function for plotting maps the AR6 way, possibly with hatching
 """
-from climaf.api import *
+from climaf.api import plot
 import os
 
 def change_figure(variable, derivation_label, field,
@@ -127,7 +127,6 @@ def change_figure(variable, derivation_label, field,
         plot_args.update(**relative_minmax(var2))
         plot_args.update(options=options_format%(labelbar,"%"))
     else:
-        #print var2,minmax(var2)
         plot_args.update(**minmax(var2))
         plot_args.update(**scale(var2))
         ustring=custom_plot.get("units",unit_string(var2))

@@ -4,6 +4,8 @@
 CAMMAC principles for managing multi-model data 
 ============================================================
 
+.. _one_model_on_vote :
+
 One model / one vote
 -------------------------------------------------
 
@@ -43,7 +45,7 @@ available datasets do change (this is actualy mandatory if some
 dataset is withdrawn.  Helper script :download:`$CAMMAC/jobs/select_data.sh
 </../../jobs/select_data.sh>` can be used
 
-This notebook is further described in :any:`the section for data
+This notebook is further described in :ref:`the section for data
 related notebooks <data_related_notebooks>`
 
 
@@ -77,12 +79,12 @@ Reference data versions dictionnary
 ------------------------------------
 
 A reference data versions dictionnary is provided with the software in
-directory *data* , and is usable for CMIP6 data on the ESPRI
+directory *data* , and is usable for CMIP6 data on the `ESPRI`_
 platform. It is based on the data available there as of february 1st,
 2021; and its the one configured by default in all notebooks
 
 At the time of writing, it can be used on the
-ESPRI platform, and this will carry on as long as no data is
+`ESPRI`_ platform, and this will carry on as long as no data is
 withdrawn; after some withdrawal occurs, that dictionnary will still be
 usable if corresponding models are indicated as excluded using the relevant
 notebooks parameter ('excluded_models')
