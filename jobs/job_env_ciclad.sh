@@ -13,6 +13,7 @@ module load ncl/6.6.2 cdo/1.9 netcdf4/4.3.3.1-gfortran
 # Set the PATH for Jupyter, and its Python, and other required softwares
 conda_env=/modfs/modtools/miniconda2
 export PATH=${conda_env}/envs/analyse_2.7/bin:${conda_env}/bin:$PATH
+KERNEL=python2
 
 # Prepend library path similarly for that Python
 export LD_LIBRARY_PATH=${conda_env}/lib:$LD_LIBRARY_PATH

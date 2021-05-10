@@ -20,7 +20,7 @@ cd $figname
 # Create input parameters file 
 cat <<EOF >fig.yaml
 
-do_test : False
+do_test : ${do_test:-False}
 scheme                 : ${scheme}
 version                : ""
 #
@@ -47,7 +47,7 @@ jobname=$figname
 output=$figname
 
 # Provide location for environment setting
-export ENV_PM=$CAMMAC/jobs/job_env.sh
+export ENV_PM=${ENV_PM:-$CAMMAC/jobs/job_env.sh}
 
 # Tell job_pm.sh to use reference parameters file 
 commons=$CAMMAC/jobs/common_parameters.yaml
