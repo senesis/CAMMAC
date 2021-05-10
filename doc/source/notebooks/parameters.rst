@@ -9,16 +9,20 @@ All notebooks have their parameters grouped in a single notebook cell
 which is the first code cell. **The parameters are generally documented
 in that first cell, otherwise their meaning is described hereafter.**
 
-Notebook's second cell usually supersedes the value on some
-parameetrs, provided the 'do_test' parameter is set to True in first
-cell (which is the default). This allows to test the notebook on a
-small-size problem
+A further notebook cell usually supersedes the value of some
+parameters, provided the ``do_test\\ parameter is set to True in first
+cell (which is the default). This allows that the default behaviour
+is to test the notebook on a small-size problem
 
 This first cell also has a Jupyter metadata wich name is 'parameters'
 and which allows `papermill`_ to supersede first cell's parameters
 values when it runs the notebook (such as in `batch mode
 <batch_mode>`; this is actually the way it knows after which cell it
 should include the parameters which it is provided with
+
+Note that the combination of both features implies that ``do_test``
+should be set to False when launching in batch mode, except when
+purposely wishing to activate the test paramaters set. 
 
 .. _user_python_settings:
 

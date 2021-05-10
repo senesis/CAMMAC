@@ -1,7 +1,7 @@
 """
 A single function for plotting maps the AR6 way, possibly with hatching
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 from climaf.api import *
 import os

@@ -10,12 +10,12 @@ CAMMAC functions related to variability
 - Computing interannual variability on a dataset
 
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 from climaf.api import *
 from climaf.period import init_period
 from env.environment import cscripts
-from mips_et_al import institute_for_model, project_for_model, table_for_var_and_experiment
+from CAMMAClib.mips_et_al import institute_for_model, project_for_model, table_for_var_and_experiment
 
 
 def variability_AR5(model,realization,variable,table, data_versions,season="ANN", project="CMIP6", 

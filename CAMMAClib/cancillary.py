@@ -9,14 +9,14 @@ CAMMAC ancilliary functions using CiMAF for computing:
 
 """
 
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 import json, os, numpy as np
 from climaf.api import *
 from climaf.operators import ccdo,ccdo_fast,ccdo2
 from env.environment import cscripts
-from mips_et_al import institute_for_model, table_for_var_and_experiment
-from variability import init_trend
+from CAMMAClib.mips_et_al import institute_for_model, table_for_var_and_experiment
+from CAMMAClib.variability import init_trend
 
 if "gini" not in cscripts:
     cscript("gini","python %s/gini.py ${in} ${out}"%os.path.dirname(__file__),_var="gini")

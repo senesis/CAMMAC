@@ -4,7 +4,7 @@ CAMMAC top level functions for computing change fields with CMIP6 data, for
 basic or derived variables
 
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 import os
 import os.path
@@ -12,18 +12,18 @@ import hashlib
 
 from climaf.api import *
 
-from variability import process_dataset, variability_AR5, agreement_fraction_on_sign, \
+from CAMMAClib.variability import process_dataset, variability_AR5, agreement_fraction_on_sign, \
     agreement_fraction_on_lower, stippling_hatching_masks_AR5, \
     lowchange_conflict_masks_AR6,\
     inter_annual_variability, control_inter_annual_variability
 
-from figures import change_figure
+from CAMMAClib.figures import change_figure
 
-from ancillary import feed_dic, choose_regrid_option
+from CAMMAClib.ancillary import feed_dic, choose_regrid_option
 
-from cancillary  import basin_average, mean_or_std, ensemble_stat, walsh_seasonality
+from CAMMAClib.cancillary  import basin_average, mean_or_std, ensemble_stat, walsh_seasonality
 
-from mips_et_al import table_for_var_and_experiment, project_for_experiment, project_for_model,\
+from CAMMAClib.mips_et_al import table_for_var_and_experiment, project_for_experiment, project_for_model,\
      institute_for_model, mip_for_experiment, models_for_experiments, models_for_experiments_multi_var, \
      read_versions_dictionnary
 

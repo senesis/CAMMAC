@@ -2,7 +2,7 @@
 Two functions for querying the ESGF errata service and summarizing its results
 """
 
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 import requests  # use pip or conda to install it if needed
 import json

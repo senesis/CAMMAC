@@ -15,7 +15,7 @@ Input ensembles must be of the same size
 This is a wrapper around a code provided by Benjamin Cook (NCAR), for use in CliMAF
 
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 import xarray as xr
 import numpy as np

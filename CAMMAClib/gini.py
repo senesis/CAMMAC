@@ -4,7 +4,7 @@ which is assumed to be single-variable, and write it in NetCDF output file
 
 Usage : gini file_in file_out
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
 import xarray as xr
 import numpy as np

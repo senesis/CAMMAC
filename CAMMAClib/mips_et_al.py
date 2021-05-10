@@ -6,11 +6,11 @@ CAMMAC ancilliary functions for :
 
 
 """
-from __future__  import division, print_function 
+from __future__  import division, print_function , unicode_literals, absolute_import
 
-import json
+import json, sys
 
-from ancillary import feed_dic
+from CAMMAClib.ancillary import feed_dic
 
 def read_versions_dictionnary(tag,directory=None) :
     """ 
@@ -25,6 +25,7 @@ def read_versions_dictionnary(tag,directory=None) :
         directory=os.path.dirname(os.path.dirname(os.path.abspath( __file__ )))+"/data_versions"
     with open("%s/Data_versions_selection_%s.json"%(directory,tag),"r") as f :
         d=json.load(f)
+    
     return d
 
 
@@ -50,7 +51,8 @@ def models_for_experiments(dic,variable,table,experiments,excluded_models=[],inc
         for model in dic[exp][variable][table] :
             if included_models is None or model in included_models :
                 for real in dic[exp][variable][table][model].keys() :
-                    feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
+                    #feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
+                    feed_dic(variants,dic[exp][variable][table][model][real],model,exp,real)
     return choose_variant(variants,experiments,excluded_models,included_models)
 
 def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,excluded_models=[],included_models=None):
@@ -126,8 +128,10 @@ def choose_variant(variants,experiments,excluded_models,included_models):
                     # a prefered variant was not found ; keep any variant
                     chosen_variant=variants_set.pop()
                 pairs.append((model,chosen_variant))
-                
-    pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
+    if sys.version_info > (3,):            
+        pairs.sort(key=lambda pair : pair[0])
+    else:
+        pairs.sort(cmp=lambda x,y : cmp(x[0],y[0]))
     return pairs
 
 
