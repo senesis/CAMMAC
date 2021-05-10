@@ -349,7 +349,8 @@ def control_inter_annual_variability(model,realization,variable,table,season,dat
         raise ValueError("Cannot get data_version for %s %s %s %s %s nor %s "%\
                          ("piControl",variable,table,model,realization,variant))
         
-    begin=int(pperiod.encode('ascii').split("-")[0])
+    #begin=int(pperiod.encode('ascii').split("-")[0])
+    begin=int(pperiod.split("-")[0])
     #
     length=nyears*number
     detrended=control_detrend(model,variable,begin,length,shift,
