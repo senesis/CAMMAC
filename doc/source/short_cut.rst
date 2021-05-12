@@ -8,8 +8,8 @@ If you are in the lucky case where :
 
 you can create a map of the change in variable ``mrro`` for season
 ``ANN`` in projection ``ssp245`` between periods 1995-2014 and
-2081-2100, using the confidence/hatching scheme ``AR6S`` (which refers
-to the AR6 simple scheme) with threshold value 0.66 by typing :
+2081-2100, using the confidence/hatching scheme ``KS`` (which refers
+to the Knutti-Sedlacek robustness index) with threshold value 0.9 by typing :
 
 .. code-block:: bash
 

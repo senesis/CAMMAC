@@ -18,14 +18,11 @@ interactive session are :
 		  
      source $CAMMAC/jobs/job_env.sh
      
-- to export environment variable ``CAMMAC_USER_PYTHON_CODE_DIR`` with
+- if you wish to systematically load some of your code in CAMMAC notebooks,
+  to export environment variable ``CAMMAC_USER_PYTHON_CODE_DIR`` with
   a value set to a directory containing a suitable
-  cammac_user_settings.py file, such as directory 'jobs'
+  cammac_user_settings.py file (otherwise, the one in $CAMMAC/jobs will be used)
 
-  .. code-block:: bash
-		  
-     export CAMMAC_USER_PYTHON_CODE_DIR=$CAMMAC/jobs
-  
 
 and then to launch jupyter e.g. on a copy of some notebook 
   

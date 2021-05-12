@@ -55,7 +55,7 @@ CAMMAC main programs are notebooks and so need Jupyter. However, using
 CAMMAClib in similar python main programs is also possible
 
 CAMMAClib and notebooks heavily rely on `CliMAF
-<https://climaf.readthedocs.io>`_ with a version >= 2.0; for
+<https://climaf.readthedocs.io>`_ with a version >= 2.0.1 [#f1]_ for
 implementing data access, for computations (mainly using `CDO
 <https://code.mpimet.mpg.de/projects/cdo>`_ behind the curtain) and
 for ploting figures (using `Ncl <https://www.ncl.ucar.edu/>`_ behind
@@ -118,3 +118,7 @@ CAMMAC is as simple as :
    export CAMMAC=<my_cammac_install>/CAMMAC  # Must be a full path
 
   
+.. rubric:: Footnotes
+
+.. [#f1] CliMAF 2.0.0 is OK except for using the hatching confidence
+         scheme based on Knutti and Sedlacek robustness index, in notebool `basic`

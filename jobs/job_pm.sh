@@ -80,11 +80,10 @@ ENV_PM=${ENV_PM:-$this_script_dir/job_env.sh}
 
 # Launch  job
 qsub -V ${PBS_RESSOURCES:-${DEFAULT_PBS_RESSOURCES}} -j eo -N $jobname <<-EOF
-	set -x
 	cd $here
 	export CAMMAC=$CAMMAC
 	KERNEL=
-	. $ENV_PM  # this set KERNEL
+	. $ENV_PM  # this sets KERNEL
 	echo KERNEL=\$KERNEL
 	export CAMMAC_USER_PYTHON_CODE_DIR=${CAMMAC_USER_PYTHON_CODE_DIR:-$this_script_dir}
 	papermill $params $nbdir/$notebook ${output}_\${PBS_JOBID}.ipynb -k \$KERNEL
