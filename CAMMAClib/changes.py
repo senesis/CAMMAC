@@ -693,7 +693,10 @@ def change_figure_with_caching(variable, experiment, season,
 
     #
     # Create a hash tag for cached result files
-    models_reals_string=reduce(lambda x,y : "%s_%s"%(x,y), [ "%s%s"%(m,r) for m,r in changes_models])
+    models_reals_string=""
+    for m,r in changes_models :
+        models_reals_string += "%s%s_"%(m,r)
+    models_reals_string=models_reals_string.encode('ascii')
     tag=data_versions_tag + "_" + hashlib.sha1(models_reals_string).hexdigest()[0:8]
     #
     aggregates={}

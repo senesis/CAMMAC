@@ -324,8 +324,8 @@ def ensemble_stat(ens,option) :
         if option=="lq75"    : return np.percentile(l,75,interpolation='linear')
     #
     elif option in ["nq5","nq95","nq25","nq75" ] : #percentiles with gaussian hypothesis
-        mean=np.mean(ens.values())
-        std1=np.std(ens.values(),ddof=1)
+        mean=np.mean(list(ens.values()))
+        std1=np.std(list(ens.values()),ddof=1)
         if option == "nq5"   : return mean - 1.645*std1
         if option == "nq25"  : return mean - 0.675*std1
         if option == "nq75"  : return mean + 0.675*std1

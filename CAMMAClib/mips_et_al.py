@@ -83,7 +83,7 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
                     except:
                         ok=False
                 if ok :
-                    feed_dic(variants,dic[exp][variable][table][model][real],model.encode('ascii'),exp,real)
+                    feed_dic(variants,dic[exp][variable][table][model][real],model,exp,real)
 
     return choose_variant(variants,experiments,excluded_models,included_models)
 
