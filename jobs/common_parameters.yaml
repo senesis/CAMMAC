@@ -10,6 +10,8 @@
 # user-controled values. See the doc (section 'Common notebook beahviour
 # ...) for explanations about those parameters
 
+project                    : CMIP6
+
 data_versions_dir          : /data/ssenesi/CAMMAC/data
 data_versions_tag          : 20210201_derived
 default_fixed_fields_dir   : /data/ssenesi/CAMMAC/data/fixed_fields

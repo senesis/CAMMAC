@@ -15,7 +15,7 @@ from __future__  import division, print_function , unicode_literals, absolute_im
 from climaf.api import *
 from climaf.period import init_period
 from env.environment import cscripts
-from CAMMAClib.mips_et_al import institute_for_model, project_for_model, table_for_var_and_experiment
+from CAMMAClib.mips_et_al import institute_for_model, table_for_var
 
 
 def variability_AR5(model,realization,variable,table, data_versions,season="ANN", project="CMIP6", 
@@ -63,7 +63,6 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
            * post_operator=inter_annual_variability
            * post_operator_args={"factor" : 1.414}
 
-    This version yet tested only on CMIP6 models 
     """
     init_trend()
     from climaf.operators import ctrend,csubtrend
@@ -126,7 +125,7 @@ def variability_AR5(model,realization,variable,table, data_versions,season="ANN"
     econtrol=cens()
     slices=[ "%d-%d"%(begin+n*nyears,begin+(n+1)*nyears-1) for n in range(0,number) ]
     for period in slices :
-        econtrol[period]=ccdo_fast(dat,operator="seldate,"+init_period(period).iso())
+        econtrol[period]=ccdo(dat,operator="seldate,"+init_period(period).iso())
 
     # On each slice, implement the required post operation, otherwise compute a plain average
     if post_operator is not None :
@@ -334,7 +333,7 @@ def inter_annual_variability(dat,factor=None,house_keeping=True,compute=False):
 
 def control_inter_annual_variability(model,realization,variable,table,season,data_versions,
                                      nyears=20,number=20,shift=100,
-                                     house_keeping=True,compute=False,detrend=True):
+                                     house_keeping=True,compute=False,detrend=True,project="CMIP6"):
     init_trend()
     from climaf.operators import ctrend,csubtrend
 
@@ -353,13 +352,13 @@ def control_inter_annual_variability(model,realization,variable,table,season,dat
     begin=int(pperiod.split("-")[0])
     #
     length=nyears*number
-    detrended=control_detrend(model,variable,begin,length,shift,
+    detrended=control_detrend(project,model,variable,begin,length,shift,
                               variant,version,
                               compute,house_keeping,detrend)
     std_dev=ccdo_fast(detrended,operator="timstd1 -seasmean -selseason,%s"%season)
     return(ccdo_fast(std_dev,operator="mulc,1.414"))
 
-def control_detrend(model,variable,begin,length, shift,
+def control_detrend(project,model,variable,begin,length, shift,
                     variant,version,
                     compute=True,house_keeping=True,detrend=True):
     # Detrend the requested variable for the piControl run 
@@ -369,13 +368,12 @@ def control_detrend(model,variable,begin,length, shift,
     
     from climaf.operators import ctrend,csubtrend
 
-    project=project_for_model(model)
-    institute=institute_for_model(model)
-    table=table_for_var_and_experiment(variable,"piControl")
+    table=table_for_var(variable)
     control=dict(variable=variable, institute=institute, model=model, 
                  project=project,table=table,
                  experiment="piControl",version=version,realization=variant)
-    if project=="CMIP6" : control.update(mip="CMIP")
+    if project=="CMIP6" :
+        control.update(mip="CMIP",institute=institute_for_model(model))
     d=ds(period="%d-%d"%(begin+shift,begin+shift+length-1),**control)
     if detrend :
         a=ctrend(d) 

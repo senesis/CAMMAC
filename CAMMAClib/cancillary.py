@@ -15,7 +15,7 @@ import json, os, numpy as np
 from climaf.api import *
 from climaf.operators import ccdo,ccdo_fast,ccdo2
 from env.environment import cscripts
-from CAMMAClib.mips_et_al import institute_for_model, table_for_var_and_experiment
+from CAMMAClib.mips_et_al import institute_for_model, table_for_var
 from CAMMAClib.variability import init_trend
 
 if "gini" not in cscripts:
@@ -23,9 +23,6 @@ if "gini" not in cscripts:
 
 if "knutti" not in cscripts:
     cscript("knutti",'python %s/knutti_sedlacek.py "${mmin}" "${mmin_2}" ${out}'%os.path.dirname(__file__),_var="KSRI")
-
-#dataloc(project='CMIP6', organization='generic', 
-#        url=CAMMAC+"/data/fixed_fields/${variable}_${table}_${model}_*_*${grid}.nc")
 
 def init_yeardiv():
     """
@@ -141,23 +138,25 @@ if test_basin_average :
     model="CNRM-CM6-1"
     dic=dict(project="CMIP6_extent", experiment="ssp585",model=model, 
                    institute=institute_for_model(model),period="2015-2020",
-                   variable="mrro", table="Lmon", version="latest",mip="ScenarioMIP",
+                   variable="mrro", table="Lmon", version="latest",
                    realization=default_variant(model,"ssp585","mrro"))
     basin_mean=basin_average(ds(**dic),"","Amazon",True,False,True)
     ncview(basin_mean)
 
 
-def land_average(data,model,compute=False,house_keeping=False,test=False) :
+def land_average(data,compute=False,house_keeping=False,test=False) :
     """
     
     """
     # Try to access land fraction field sftlf
-    base_dict=dict(project="CMIP6", experiment="piControl", mip="CMIP",
-        model=model, institute=institute_for_model(model),version="*", 
+    base_dict=dict(project=data.project, experiment="piControl", 
+        model=data.model, version="*", 
         realization="*",table="fx",period="fx",variable="sftlf")
     #
-    if "GFDL" in model or "INM" in model : 
-        base_dict.update(grid="gr1")
+    if data.project == "CMIP6" :
+        base_dict["institute"]=institute_for_model(model)
+        if "GFDL" in model or "INM" in model : 
+            base_dict.update(grid="gr1")
     #
     sftlf=ds(**base_dict)
     try :
@@ -188,14 +187,14 @@ if test_land_average :
     model="CNRM-CM6-1"
     dic=dict(project="CMIP6_extent", experiment="ssp585",model=model, 
                    institute=institute_for_model(model),period="2015-2020",
-                   variable="pr", table="Amon", version="latest",mip="ScenarioMIP",
+                   variable="pr", table="Amon", version="latest",
                    realization=default_variant(model,"ssp585","pr"))
-    land_mean=land_average(ds(**dic),model,True,False,True)
+    land_mean=land_average(ds(**dic),True,False,True)
     ncview(land_mean)
-    print(cvalue(land_average(ds(**dic),model,True,False,False))*24.*3600)
+    print(cvalue(land_average(ds(**dic),True,False,False))*24.*3600)
 
 
-def mean_or_std(scenario, ref_experiment, model, realization, season, variable, stat, table,  
+def mean_or_std(project, scenario, ref_experiment, model, realization, season, variable, stat, table,  
                 period, data_versions, operator=None, operator_args={}, compute=False,
                 detrend=True, house_keeping=False) :
     """
@@ -214,30 +213,30 @@ def mean_or_std(scenario, ref_experiment, model, realization, season, variable, 
     PERIOD can extend from some date in REF_EXPERIMENT to some other date of SCENARIO, 
     but then, the end of REF_EXPERIMENT must match the beginning of SCENARIO
     
-    Works for CMIP6 only, yet
     """
     #
     # Define relevant dataset
     if ref_experiment is not None :
         grid,version,_=data_versions[ref_experiment][variable][table][model][realization]
         _,scenario_version,_=data_versions[scenario][variable][table][model][realization]
-        dic=dict(project="CMIP6_extent", 
+        dic=dict(project=project+"_extent", 
              experiment=ref_experiment, extent_experiment=scenario,
              variable=variable, period= period,
-             mip="*", model=model, institute=institute_for_model(model),
-             table=table_for_var_and_experiment(variable,scenario), 
-             version=version, extent_version=scenario_version, grid=grid, 
+             model=model, table=table_for_var(variable), 
+             version=version, extent_version=scenario_version, 
              realization=realization)
     else :
         grid,version,_=data_versions[scenario][variable][table][model][realization]
-        dic=dict(project="CMIP6", 
+        dic=dict(project=project, 
              experiment=scenario,
              variable=variable, period= period,
-             mip="*", model=model, institute=institute_for_model(model),
-             table=table_for_var_and_experiment(variable,scenario), 
-             version=version, grid=grid, 
+             model=model, table=table_for_var(variable), 
+             version=version, 
              realization=realization)
-    #
+    if project == "CMIP6" :
+        dic.update(institute=institute_for_model(model), grid=grid)
+        #
+    print("dic=",dic)
     # Compute relevant stat
     if stat=="mean" : 
         # Average over years, possibly after selecting season

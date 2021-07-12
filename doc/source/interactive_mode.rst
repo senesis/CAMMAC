@@ -10,7 +10,7 @@ interactive session are :
   .. code-block:: bash
 		  
      export CAMMAC=/data/ssenesi/CAMMAC
-     export CLIMAF=/home/ssenesi/climaf_installs/climaf_running
+     export CLIMAF=/home/ssenesi/climaf_installs/V2.0.1
 
 - to source file ``jobs/job_env.sh``
 
