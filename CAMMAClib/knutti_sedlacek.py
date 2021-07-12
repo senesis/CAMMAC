@@ -42,7 +42,7 @@ def KandS(allmods_hist, allmods_fut, names) :
         print("%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape)
 
     if len(models_in_error) !=0 :
-        print("There are various shaeps for input data : ",{ f.shape for f in allmods_fut })
+        print("There are various shapes for input data : ",{ f.shape for f in allmods_fut })
         print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
         raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error)
         
@@ -53,7 +53,7 @@ def KandS(allmods_hist, allmods_fut, names) :
         print("%30s %3d %3d %3d"%(n,f.lat.size, f.lon.size, f.time.size), np.asarray(f).shape)
 
     if len(models_in_error) !=0 :
-        print("There are various shaeps for input data : ",{ f.shape for f in allmods_hist })
+        print("There are various shapes for input data : ",{ f.shape for f in allmods_hist })
         print("These models doesn't have the right time size(%d)"%time_size,models_in_error)
         raise ValueError("These models doesn't have the right time size(%d)"%time_size,models_in_error)
 
@@ -166,7 +166,7 @@ var=allvars[0]
 
 out["KSRI"]= KandS([ ref[var]  for ref  in references  ] ,
                    [ proj[var] for proj in projections ],
-                   [ proj.attrs.get("source_id","??") for proj in projections ],
+                   [ proj.attrs.get("source_id",proj.attrs.get("model_id","??")) for proj in projections ],
                    )
 
 out.to_netcdf(outfilen,encoding={'KSRI': { '_FillValue': 1e+20}})

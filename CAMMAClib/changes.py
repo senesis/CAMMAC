@@ -1,6 +1,6 @@
 """
 
-CAMMAC top level functions for computing change fields with CMIP6 data, for
+CAMMAC top level functions for computing change fields with CMIP data, for
 basic or derived variables
 
 """
@@ -23,7 +23,7 @@ from CAMMAClib.ancillary import feed_dic, choose_regrid_option
 
 from CAMMAClib.cancillary  import basin_average, mean_or_std, ensemble_stat, walsh_seasonality
 
-from CAMMAClib.mips_et_al import table_for_var_and_experiment, project_for_experiment, project_for_model,\
+from CAMMAClib.mips_et_al import table_for_var, \
      institute_for_model, mip_for_experiment, models_for_experiments, models_for_experiments_multi_var, \
      read_versions_dictionnary
 
@@ -60,7 +60,7 @@ derivations={
     }
 
 
-def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
+def stats_of_basins_changes(model_changes,project,ref_experiment,scenario,ref_period,
                             variable,table,time_stat,
                             data_versions,slices,stats_list,basins_data,
                             fprint=True,excluded_models=[], included_models=None,
@@ -109,8 +109,8 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
                     args={"operator":"fldmean"}
                 else:
                     operator=basin_average
-                    args={"model":model,"basin":basin,"basins":basins_data,"compute":True}
-                value=cvalue(mean_or_std(scenario, ref_experiment, model, variant, "anm", variable, time_stat, table,
+                    args={"model": model, "basin":basin,"basins":basins_data,"compute":True}
+                value=cvalue(mean_or_std(project, scenario, ref_experiment, model, variant, "anm", variable, time_stat, table,
                                          period, data_versions, operator, args,
                                          compute=compute,house_keeping=house_keeping))
                 feed_dic(values,value,model,basin,period)
@@ -144,7 +144,7 @@ def stats_of_basins_changes(model_changes,ref_experiment,scenario,ref_period,
 
 
 
-def global_change(variable,table,experiment,period,ref_experiment,ref_period,
+def global_change(project,variable,table,experiment,period,ref_experiment,ref_period,
                   models,data_versions,filter_length=21) :
     """
     
@@ -166,8 +166,6 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
     
     (data-period is used only for piControl)
 
-    Tuned for CMIP6 only (yet). 
-
     Assumes that, for each model in the provided list, realization
     indices and grids are consistent across experiments
 
@@ -179,18 +177,19 @@ def global_change(variable,table,experiment,period,ref_experiment,ref_period,
         grid,ref_version,_= data_versions[ref_experiment][variable][table][model][realization]
         grid,version,_    = data_versions[experiment]    [variable][table][model][realization]
         print("Global_change - processing %20s %s %s"%(model,realization,version),end='')
-        dic=dict(project="CMIP6_extent",
+        dic=dict(project=project+"_extent",
                  experiment=ref_experiment, extent_experiment=experiment,
-                 model=model, 
-                 institute=institute_for_model(model), period=period,
-                 variable=variable, table=table_for_var_and_experiment(variable,experiment),
-                 mip="*", realization=realization, version=ref_version,extent_version=version,grid=grid)
+                 model=model, period=period,
+                 variable=variable, table=table_for_var(variable),
+                 realization=realization, version=ref_version, extent_version=version)
+        if project == "CMIP6" :
+            dic.update(institute=institute_for_model(model), grid=grid)
+        
         filtered_tasmean=ccdo(ds(**dic),operator="runmean,%d -yearmean -fldmean"%filter_length)
         #
         _,version,_=data_versions[ref_experiment][variable][table][model][realization]
         ref=dic.copy()
-        ref.update(experiment=ref_experiment, mip=mip_for_experiment(ref_experiment),
-                   period=ref_period,version=version)
+        ref.update(experiment=ref_experiment, period=ref_period,version=version)
         ref_tasmean=ccdo(ds(**ref),operator="timmean -fldmean")
         cfile(ref_tasmean)
         ref=cvalue(ref_tasmean)
@@ -256,7 +255,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     The fraction of sign agreement across models is returned under key
     `agreement_fraction_on_sign` (see below)
 
-    The variable is sought in CMIP6 table Amon or Lmon (depending on the 
+    The variable is sought inproject's table Amon or Lmon (depending on the 
     variable), except specified otherwise using arg TABLE (e.g. value 'day' is 
     for processing variable 'pr', provided the derivation make sense for daily data)
 
@@ -319,8 +318,7 @@ def change_fields(project,variable,experiments,seasons,ref_period,projection_per
     for experiment in experiments :
         #
         if table is None :
-            table=table_for_var_and_experiment(variable,experiment)
-        #project=project_for_experiment(experiment)
+            table=table_for_var(variable)
         control_models,models=models_to_plot[experiment]
         do_variability= (variab_sampling_args != {} and variab_sampling_args is not None and \
                         len(control_models) > 0 )
@@ -444,16 +442,15 @@ def change_fields_internal(dic,project,model,realization,variable,ref_period,
     else :
         print(model,end='')
     #
-    #project=project_for_experiment(experiment)
     grid,version,_=data_versions[ref_experiment][variable][table][model][realization]
     roption=choose_regrid_option(variable,table,model,grid)
     derivation=derivations[derivation_label]
     #
     base_dict=dict(project=project, experiment=ref_experiment,
-                        model=model, institute=institute_for_model(model),
-                        period=ref_period, variable=variable, table=table, 
-                        version=version, grid=grid,
-                        realization=realization)
+                        model=model, period=ref_period, variable=variable,
+                        table=table, version=version, realization=realization)
+    if project == "CMIP6" :
+        dic.update(institute=institute_for_model(model), grid=grid)
     #
     # Compute reference time mean over requested season
     reference_dict=base_dict.copy()
@@ -550,7 +547,7 @@ def variability_field(project,model,realization,variable,season,
                              "(%s) and a derivation (%s) "%(variable,derivation_label)+\
                              "which needs pre or post-processing" )
         inter_ann_var=control_inter_annual_variability(model,realization,\
-                            variable,table,season,data_versions,**args)
+                                                       variable,table,season,data_versions,project=project,**args)
     #
     if only_inter_annual :
         variability = inter_ann_var

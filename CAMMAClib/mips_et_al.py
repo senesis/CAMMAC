@@ -1,14 +1,14 @@
 """
 
 CAMMAC ancilliary functions for :
-  - handling CMIP6 data, experiments, tables, their models and institutes
+  - handling CMIP data, experiments, tables, their models and institutes
   - handling data versions 
 
 
 """
 from __future__  import division, print_function , unicode_literals, absolute_import
 
-import json, sys
+import json, sys, yaml
 
 from CAMMAClib.ancillary import feed_dic
 
@@ -73,7 +73,7 @@ def models_for_experiments_multi_var(dic,variable_table_pairs,experiments,exclud
             a=dic[exp][variable][table]
         except :
             print(exp,variable,table)
-            raise ValueError("")
+            raise ValueError("Data versions dict does not include %s %s %s"%(exp,variable,table))
         for model in dic[exp][variable][table] :
             for real in dic[exp][variable][table][model].keys() :
                 ok=True
@@ -144,6 +144,7 @@ def prefered_variant (variants_set,experiments,model) :
        - otherwise the one matching r1i*, if there is only one
        - otherwise any of the variant with the lowest 'r' index
 
+    CMIP5 (e.g. r1i1p1) is also handled
     """
     
     chosen_variant=None
@@ -168,18 +169,30 @@ def prefered_variant (variants_set,experiments,model) :
                     else:
                         # Preferentially keep a "r1i1p1" variant
                         r1i1p1s=[]
-                        for variant in r1i1s :
-                            if "r1i1p1f" in variant:
-                                r1i1p1s.append(variant)
-                        if len(r1i1p1s) > 0 :
-                            if len(r1i1p1s) == 1  :
-                                chosen_variant=r1i1p1s[0]
-                            else:
-                                if "r1i1p1f1" in r1i1p1s :
-                                    chosen_variant="r1i1p1f1"
-                                else: 
-                                    raise ValueError("Should handle preference among forcing index for %s %s %s"%\
+                        if "f" in r1i1s[0] :
+                            #CMIP6 case
+                            for variant in r1i1s :
+                                if "r1i1p1f" in variant:
+                                    r1i1p1s.append(variant)
+                            if len(r1i1p1s) > 0 :
+                                if len(r1i1p1s) == 1  :
+                                    chosen_variant=r1i1p1s[0]
+                                else:
+                                    if "r1i1p1f1" in r1i1p1s :
+                                        chosen_variant="r1i1p1f1"
+                                    else: 
+                                        raise ValueError("Should handle preference among forcing index for %s %s %s"%\
                                                      (experiments,model,str(r1i1p1s)))
+                        else : #CMIP5 case
+                            # Choose any variant among those with lowest 'p' index
+                            pmin=10000
+                            for variant in r1i1s :
+                                p=int(variant[variant.find("p")+1:])
+                                if p < pmin :
+                                    chosen_variant=variant
+                                    pmin=p
+                            return chosen_variant
+                                
         else :
             # Choose any variant among those with lowest 'r' index
             rmin=10000
@@ -220,12 +233,16 @@ def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=No
         experiments=[experiments]
     for experiment in experiments :
         for model,variant in models :
-            if mip is None :
-                mip2 = mip_for_experiment(experiment)
-            else :
-                mip2=mip
-            institute = institute_for_model(model,mip2)
-            drs='%s.%s.%s.%s.%s'%(project,mip,institute,model,experiment)
+            if project=="CMIP5" :
+                drs='%s.institute.%s.%s'%(project,model,experiment)
+            elif project == "CMIP6":
+                if mip is None :
+                    mip2 = mip_for_experiment(experiment)
+                else :
+                    mip2=mip
+                institute = institute_for_model(model,mip2)
+                drs='%s.%s.%s.%s.%s'%(project,mip,institute,model,experiment)
+            else : raise ValueError("Cannot handle project %s"%project)
             realization=variant
             if table == 'yr' :
                 if variable in [ 'dday' , 'drain' ]:
@@ -253,35 +270,28 @@ def TSU_metadata(experiments,models,variable,table,data_versions,panel_letter=No
                 rep += "\n"
     return rep
     
-def project_for_experiment(experiment):
-    if experiment in ["ssp119", "ssp126","ssp245", "ssp370","ssp585","rcp85","piControl","historical"] :
-        return "CMIP6"
-    elif experiment in ["rcp85"] : return "CMIP5"
-    raise ValueError("Cannot tell which project defined  experiment "+experiment)
-    
 
 def mip_for_experiment(experiment):
+    # Actually called only for CMIP6
     if experiment[0:3]=="ssp" :
         return "ScenarioMIP"
-    if experiment=="piClim-ghg" :
+    elif experiment=="piClim-ghg" :
         return "RFMIP"
-    if experiment in ["historical", "piControl" ,"1ptCO2" ] :
+    elif experiment in ["historical", "piControl" ,"1ptCO2" ] :
         return "CMIP"
-    raise ValueError("Cannot yet tell which MIP defined experiment "+experiment)
+    else: 
+        return "*"
 
-def table_for_var_and_experiment(variable,experiment):
-    if experiment in ["ssp119", "ssp126","ssp245", "ssp370","ssp585","rcp85","piControl","historical"] :
-        table="Amon"
-        if variable in ["mrso","mrro","mrsos"] : 
-            table="Lmon"
-        if variable in ["snw","snc"] : 
-            table="LImon"
-        if variable in ["sos","tos"] : 
-           table="Omon"
-        if variable=="pr_day" :
-            table="day"
-    else :
-        table=None
+def table_for_var(variable):
+    table="Amon"
+    if variable in ["mrso","mrro","mrsos"] : 
+        table="Lmon"
+    elif variable in ["snw","snc"] : 
+        table="LImon"
+    elif variable in ["sos","tos"] : 
+        table="Omon"
+    elif variable == "pr_day" :
+        table="day"
     return table
 
 
@@ -419,22 +429,17 @@ models_data = {
 }
 
     
-def project_for_model(model):
-    if "/" in model :
-        model=model.split("/")[1]
-    return models_data[model][0]
-
-
 def institute_for_model(model,mip=None):
+    #
     if "/" in model :
         model=model.split("/")[1]
-    if model=="MPI-ESM1-2-HR" :
-       if mip == "ScenarioMIP" :
-        return "DKRZ"
-       elif mip in [ "CMIP","DCPP"] :
-        return "MPI-M"
-       else :
+    #    
+    if model != "MPI-ESM1-2-HR" :
+        if model in models_data :
+            return models_data[model][1]
         return "*"
-    return models_data[model][1]
-
+    else:
+       if mip == "ScenarioMIP"      : return "DKRZ"
+       elif mip in [ "CMIP","DCPP"] : return "MPI-M"
+       else                         : return "*"
 

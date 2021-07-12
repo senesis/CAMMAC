@@ -15,11 +15,11 @@ cat <<"EOF" >param.yaml
 
 do_test             : False
 
-project             : CMIP6
+project             : CMIP5
 data_versions_dir   : /home/ssenesi/CAMMAC/select_data_versions
-data_versions_tag   : "20210201"
+data_versions_tag   : "CMIP5_20210626"
 
-experiments         : [ piControl , historical , ssp126 , ssp245 , ssp585 , ssp119, ssp370 ]
+experiments         : [ piControl , historical , rcp26 , rcp45 , rcp85 ]
 
 variables           : 
      Amon : [ pr , tas , prw , evspsbl ]
@@ -27,25 +27,16 @@ variables           :
      Omon : [ sos ]
      day  : [ pr ]
 
-#experiments         : [ piControl , historical , ssp370 ]
-#variables           : 
-#     Amon : [ pr  ]
-
 piControl_minimum_duration : 200
 
-preferred_grids  : 
-  CESM2-WACCM     : gn 
-  CESM2-WACCM-FV  : gn 
-  CESM2-WACCM-FV2 : gn 
-  CESM2-FV2       : gn 
-  CESM2           : gn 
-  CNRM-CM6-1      : gr1 
-  CNRM-ESM2-1     : gr1 
-  GFDL-ESM4       : gn 
-  GFDL-CM4        : [ gn , gr1 ] 
-  IPSL-CM6A-LR    : gr1 
-  MIROC-ES2L      : gr1
-  MRI-ESM2-0      : gn 
+periods   :
+    historical : "1850-2005"
+    rcp26     : "2006-2099" 
+    rcp45     : "2006-2099"  
+    rcp85     : "2006-2099"  
+    piControl  : "*"
+
+preferred_grids  : null
 
 EOF
 
