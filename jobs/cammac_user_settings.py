@@ -10,6 +10,7 @@
 # - default_fixed_fields_dir (can be anything if not used)
 # - derived_variables_pattern (can be None)
 
+import climaf
 from climaf.api import *
 
 # Fix some model errors
