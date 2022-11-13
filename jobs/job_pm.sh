@@ -1,11 +1,11 @@
 #!/bin/bash
 
-DEFAULT_PBS_RESSOURCES="-l mem=16g -l vmem=32g -l walltime=${hours:-06}:00:00"
+DEFAULT_PBS_RESSOURCES="--mem-per-cpu=32G  --time=240 "
 
 usage="""
   $(basename $0) NOTEBOOK PARAMETERS_FILE JOBNAME OUTPUT COMMON_PARAMS
 
-  Launch with 'qsub' a job which executes NOTEBOOK using 'papermill' 
+  Launch with 'sbatch' a job which executes NOTEBOOK using 'papermill' 
   (https://papermill.readthedocs.io). 
 
   Thanks to papermill, the executed notebook will take into account the settings read 
@@ -79,7 +79,7 @@ params="--parameters_file $fparams"
 ENV_PM=${ENV_PM:-$this_script_dir/job_env.sh}
 
 # Launch  job
-qsub -V ${PBS_RESSOURCES:-${DEFAULT_PBS_RESSOURCES}} -j eo -N $jobname <<-EOF
+sbatch --export=ALL ${PBS_RESSOURCES:-${DEFAULT_PBS_RESSOURCES}} --job_name $jobname <<-EOF
 	cd $here
 	export CAMMAC=$CAMMAC
 	KERNEL=

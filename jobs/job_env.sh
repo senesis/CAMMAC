@@ -1,1 +1,1 @@
-job_env_ciclad.sh
+job_env_spirit.sh
